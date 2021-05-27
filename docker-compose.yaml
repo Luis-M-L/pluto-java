@@ -1,0 +1,20 @@
+version: '3.1'
+
+services:
+
+  mysql:
+    image: mariadb:10.5.10
+    environment:
+      MYSQL_DATABASE: Pluto
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: mozo
+      MYSQL_PASSWORD: ozom
+    volumes:
+    - D:\PublicHalf\Documents\Proyectos\Docker\Compartido\mariadb-pluto:/var/lib/mysql
+
+  bitfinex:
+    build:
+      context: ./bitfinex/
+      dockerfile: Dockerfile
+    ports:
+    - "8081:8080"
