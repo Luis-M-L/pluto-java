@@ -1,7 +1,17 @@
 package com.example.pluto.entities;
 
+import javax.persistence.*;
+import java.sql.Timestamp;
+
+@Entity
+@Table(name = "PLUTO_SPOTS")
 public class SpotTO {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    private Timestamp timestamp;
     private Double bid;
     private Double mid;
     private Double offer;
@@ -13,6 +23,22 @@ public class SpotTO {
         this.bid = bid;
         this.offer = offer;
         this.mid = (bid != null && offer != null) ? bid + offer / 2 : null;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     public Double getBid() {

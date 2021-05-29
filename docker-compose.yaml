@@ -5,12 +5,14 @@ services:
   mysql:
     image: mariadb:10.5.10
     environment:
-      MYSQL_DATABASE: Pluto
+      MYSQL_DATABASE: pluto
       MYSQL_ROOT_PASSWORD: toor
       MYSQL_USER: mozo
       MYSQL_PASSWORD: ozom
     volumes:
     - D:\PublicHalf\Documents\Proyectos\Docker\Compartido\mariadb-pluto:/var/lib/mysql
+    ports:
+    - "3306:3306"
 
   bitfinex:
     build:
