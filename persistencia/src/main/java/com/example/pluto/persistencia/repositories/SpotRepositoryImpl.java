@@ -2,11 +2,13 @@ package com.example.pluto.persistencia.repositories;
 
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.repositories.SpotRepository;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
+@EntityScan("com.example.pluto.entities")
 public class SpotRepositoryImpl implements SpotRepository {
 
     @Override
