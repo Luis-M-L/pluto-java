@@ -19,4 +19,11 @@ services:
       context: ./bitfinex/
       dockerfile: Dockerfile
     ports:
-    - "8081:8080"
+    - "48558:8080"
+
+  persistencia:
+    build:
+      context: ./persistencia/
+      dockerfile: Dockerfile
+    ports:
+    - "48557:8080"
