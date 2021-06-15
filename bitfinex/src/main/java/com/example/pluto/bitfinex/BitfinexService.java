@@ -2,7 +2,7 @@ package com.example.pluto.bitfinex;
 
 import com.example.pluto.entities.SnapshotTO;
 import com.example.pluto.entities.SpotTO;
-import com.example.pluto.interfaces.ExchangeService;
+import com.example.pluto.exchanges.ExchangeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

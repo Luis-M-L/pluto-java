@@ -1,7 +1,7 @@
 package com.example.pluto.bitfinex;
 
 import com.example.pluto.entities.SpotTO;
-import com.example.pluto.interfaces.ExchangeParser;
+import com.example.pluto.exchanges.ExchangeParser;
 import org.springframework.stereotype.Component;
 
 @Component

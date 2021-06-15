@@ -1,4 +1,4 @@
-package com.example.pluto.interfaces;
+package com.example.pluto.exchanges;
 
 import com.example.pluto.entities.BookTO;
 import com.example.pluto.entities.SnapshotTO;

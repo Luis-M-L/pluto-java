@@ -1,6 +1,6 @@
 package com.example.pluto.bitfinex;
 
-import com.example.pluto.interfaces.ExchangeAPIClient;
+import com.example.pluto.exchanges.ExchangeAPIClient;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
