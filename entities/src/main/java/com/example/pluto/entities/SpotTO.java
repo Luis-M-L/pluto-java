@@ -60,7 +60,7 @@ public class SpotTO {
     }
 
     public void setMid() {
-        this.mid = (this.bid != null && this.offer != null) ? this.bid + this.offer / 2 : null;
+        this.mid = (this.bid != null && this.offer != null) ? (this.bid + this.offer) / 2.0 : null;
     }
 
     public Double getOffer() {
