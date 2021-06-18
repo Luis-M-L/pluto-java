@@ -9,9 +9,12 @@ import java.sql.Timestamp;
 public class BookTOTest {
 
     SpotTO spot;
+
+    String instrument = "BTCUSD";
     Double bid = 1.0;
     Double offer = 2.0;
     Double mid = 1.5;
+    Double volume = 4069.14892134;
 
     @Before
     public void setUp(){
@@ -29,6 +32,12 @@ public class BookTOTest {
         Assert.assertNull(spot1.getBid());
         Assert.assertNull(spot1.getOffer());
         Assert.assertNull(spot1.getMid());
+    }
+
+    @Test
+    public void testGetSetInstrument(){
+        spot.setInstrument(instrument);
+        Assert.assertEquals(instrument, spot.getInstrument());
     }
 
     @Test
@@ -61,5 +70,11 @@ public class BookTOTest {
         Assert.assertEquals(bid, spot.getBid());
         Assert.assertEquals(mid, spot.getMid());
         Assert.assertEquals(offer, spot.getOffer());
+    }
+
+    @Test
+    public void testGetSetVolume(){
+        spot.setVolume(volume);
+        Assert.assertEquals(volume, spot.getVolume());
     }
 }

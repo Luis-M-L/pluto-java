@@ -15,11 +15,13 @@ public class SpotTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    private String instrument;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
     private Double bid;
     private Double mid;
     private Double offer;
+    private Double volume;
 
     public SpotTO() {
     }
@@ -36,6 +38,14 @@ public class SpotTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getInstrument() {
+        return instrument;
+    }
+
+    public void setInstrument(String instrument) {
+        this.instrument = instrument;
     }
 
     public Timestamp getTimestamp() {
@@ -70,6 +80,14 @@ public class SpotTO {
     public void setOffer(Double offer) {
         this.offer = offer;
         setMid();
+    }
+
+    public Double getVolume() {
+        return volume;
+    }
+
+    public void setVolume(Double volume) {
+        this.volume = volume;
     }
 
     public String toJSON() throws JsonProcessingException {
