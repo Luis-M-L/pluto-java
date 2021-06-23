@@ -1,5 +1,9 @@
 package com.example.pluto.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -11,6 +15,7 @@ public class SpotTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
     private Double bid;
     private Double mid;
@@ -65,6 +70,11 @@ public class SpotTO {
     public void setOffer(Double offer) {
         this.offer = offer;
         setMid();
+    }
+
+    public String toJSON() throws JsonProcessingException {
+        ObjectMapper mapperObj = new ObjectMapper();
+        return mapperObj.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
     @Override
