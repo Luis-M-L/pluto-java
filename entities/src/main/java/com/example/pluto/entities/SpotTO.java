@@ -26,10 +26,13 @@ public class SpotTO {
     public SpotTO() {
     }
 
-    public SpotTO(Double bid, Double offer) {
+    public SpotTO(String instrument, Timestamp timestamp, Double bid, Double offer, Double volume) {
+        this.instrument = instrument;
+        this.timestamp = timestamp;
         this.bid = bid;
         this.offer = offer;
         this.mid = (bid != null && offer != null) ? bid + offer / 2 : null;
+        this.volume = volume;
     }
 
     public Long getId() {

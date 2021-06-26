@@ -6,15 +6,16 @@ import org.junit.Test;
 
 import java.sql.Timestamp;
 
-public class BookTOTest {
+public class SpotTOTest {
 
     SpotTO spot;
 
-    String instrument = "BTCUSD";
-    Double bid = 1.0;
-    Double offer = 2.0;
-    Double mid = 1.5;
-    Double volume = 4069.14892134;
+    private String instrument = "BTCUSD";
+    private Timestamp timestamp = Timestamp.valueOf("2021-06-26 12:04:30");
+    private Double bid = 1.0;
+    private Double offer = 2.0;
+    private Double mid = 1.5;
+    private Double volume = 4069.14892134;
 
     @Before
     public void setUp(){
@@ -24,7 +25,7 @@ public class BookTOTest {
     @Test
     public void testConstructors(){
         SpotTO spot1 = new SpotTO();
-        SpotTO spot2 = new SpotTO(1.0, 2.0);
+        SpotTO spot2 = new SpotTO(instrument, timestamp, 1.0, 2.0, volume);
 
         Assert.assertEquals(SpotTO.class, spot1.getClass());
         Assert.assertEquals(SpotTO.class, spot2.getClass());

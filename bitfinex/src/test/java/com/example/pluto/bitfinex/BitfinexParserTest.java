@@ -13,8 +13,8 @@ public class BitfinexParserTest {
 
     public BitfinexParser parser;
 
-    public String jsonTicker;
-    public Timestamp timestamp = Timestamp.valueOf("2021-06-18 10:19:30");
+    private String jsonTicker;
+    private Timestamp timestamp = Timestamp.valueOf("2021-06-18 10:19:30");
 
     @Before
     public void setUp(){
