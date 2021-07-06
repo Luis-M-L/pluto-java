@@ -101,9 +101,14 @@ public class SpotTO {
     @Override
     public String toString() {
         return "SpotTO{" +
-                "bid=" + bid +
+                "id=" + id +
+                ", instrument='" + instrument +
+                ", timestamp=" + timestamp +
+                ", bid=" + bid +
                 ", mid=" + mid +
                 ", offer=" + offer +
+                ", volume=" + volume +
                 '}';
     }
+
 }
