@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.URI;
@@ -43,7 +42,6 @@ public class DatacrawlerTasks {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    @Scheduled(fixedRate = 300000)
     @Bean
     public Job registerSpotsJob(){
         return jobBuilderFactory.get("registerSpotsJob")
@@ -59,6 +57,7 @@ public class DatacrawlerTasks {
                                 .<byte[], byte[]> chunk(5)
                                 .reader(getSpots())
                                 .writer(writer())
+                                .allowStartIfComplete(true)
                                 .build();
     }
 
@@ -75,7 +74,7 @@ public class DatacrawlerTasks {
     }
 
     private List<String> getParesVigilados(){
-        return Arrays.asList("USDBTC", "USDETH", "ETHBTC");
+        return Arrays.asList("BTCUSD", "ETHUSD", "ETHBTC");
     }
 
     private byte[] getSpot(String par){
