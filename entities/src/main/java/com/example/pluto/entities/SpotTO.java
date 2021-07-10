@@ -102,7 +102,7 @@ public class SpotTO {
     public String toString() {
         return "SpotTO{" +
                 "id=" + id +
-                ", instrument='" + instrument +
+                ", instrument=" + instrument +
                 ", timestamp=" + timestamp +
                 ", bid=" + bid +
                 ", mid=" + mid +

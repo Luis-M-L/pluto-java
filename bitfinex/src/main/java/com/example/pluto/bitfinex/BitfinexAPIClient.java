@@ -12,7 +12,7 @@ import java.net.http.HttpResponse;
 public class BitfinexAPIClient extends ExchangeAPIClient {
     
     public enum uris {
-        SPOT("https://api-pub.bitfinex.com/v2/tickers?symbols=tBTCUSD");
+        SPOT("https://api-pub.bitfinex.com/v2/tickers?symbols=t");
 
         public final String url;
 
@@ -33,7 +33,7 @@ public class BitfinexAPIClient extends ExchangeAPIClient {
     @Override
     public String getSpot(String instrument) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(URI.create(uris.SPOT.url))
+                                        .uri(URI.create(uris.SPOT.url + instrument))
                                         .build();
         HttpResponse<String> response = super.getClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
