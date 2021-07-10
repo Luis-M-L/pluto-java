@@ -2,17 +2,7 @@ package com.example.batches.datacrawler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.support.IteratorItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
@@ -20,7 +10,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,55 +19,17 @@ public class DatacrawlerTasks {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatacrawlerTasks.class);
 
-    @Value("${persistence.component.basepath}")
-    public String PERSISTENCE_BASE;
-
-    @Value("${bitfinex.component.basepath}")
-    public String DATASOURCE_BASE;
-
-    @Autowired
-    public JobBuilderFactory jobBuilderFactory;
-
-    @Autowired
-    public StepBuilderFactory stepBuilderFactory;
-
-    @Bean
-    public Job registerSpotsJob(){
-        return jobBuilderFactory.get("registerSpotsJob")
-                                .incrementer(new RunIdIncrementer())
-                                .flow(step())
-                                .end()
-                                .build();
+    public static void registerSpots(){
+        LOG.info("Registering spot data");
+        getParesVigilados().forEach(par -> requestSave(getSpot(par)));
     }
 
-    @Bean
-    public Step step(){
-        return stepBuilderFactory.get("step1")
-                                .<byte[], byte[]> chunk(5)
-                                .reader(getSpots())
-                                .writer(writer())
-                                .allowStartIfComplete(true)
-                                .build();
-    }
-
-    @Bean
-    public ItemReader<? extends byte[]> getSpots(){
-        List<byte[]> spots = new ArrayList<>();
-        getParesVigilados().forEach(par -> spots.add(getSpot(par)));
-        return new IteratorItemReader<byte[]>(spots.iterator());
-    }
-
-    @Bean
-    public PersistenciaWriter writer(){
-        return new PersistenciaWriter(PERSISTENCE_BASE + "/spot");
-    }
-
-    private List<String> getParesVigilados(){
+    private static List<String> getParesVigilados(){
         return Arrays.asList("BTCUSD", "ETHUSD", "ETHBTC");
     }
 
-    private byte[] getSpot(String par){
-        HttpRequest request = HttpRequest.newBuilder(URI.create(DATASOURCE_BASE + par)).build();
+    private static byte[] getSpot(String par){
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/spot/" + par)).build();
         HttpResponse<byte[]> response = null;
 
         try {
@@ -94,4 +45,20 @@ public class DatacrawlerTasks {
         return response.body();
     }
 
+    private static void requestSave(byte[] body){
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48557/persistence/spot"))
+                .method("POST", HttpRequest.BodyPublishers.ofByteArray(body))
+                .setHeader("Content-Type", "application/json")
+                .build();
+        try{
+            HttpResponse<byte[]> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if(response.statusCode() != 200){
+                throw new IllegalStateException("Error saving " + request.toString());
+            }
+        } catch (IOException ioe){
+            ioe.printStackTrace();
+        } catch (InterruptedException ie){
+            ie.printStackTrace();
+        }
+    }
 }
