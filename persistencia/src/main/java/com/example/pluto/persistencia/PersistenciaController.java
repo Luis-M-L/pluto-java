@@ -16,6 +16,7 @@ public class PersistenciaController {
 
     @PostMapping(value = "/spot")
     void saveSpot(@RequestBody SpotTO spot){
+        System.out.println("saveSpot" + spot.toString());
         persistenciaService.save(spot);
     }
 

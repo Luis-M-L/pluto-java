@@ -19,7 +19,7 @@ services:
       context: ./bitfinex/
       dockerfile: Dockerfile
     ports:
-    - "48558:8080"
+      - "48558:8080"
 
   persistencia:
     build:
@@ -27,3 +27,10 @@ services:
       dockerfile: Dockerfile
     ports:
     - "48557:8080"
+
+  batches:
+    build:
+      context: ./batches/
+      dockerfile: Dockerfile
+    ports:
+      - "48559:8080"

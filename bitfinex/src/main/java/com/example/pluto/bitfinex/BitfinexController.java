@@ -28,7 +28,7 @@ public class BitfinexController implements ExchangeController {
 
     @Override
     public SpotTO getSpot(String instrument, String time) {
-        System.out.println("getSpot");
+        System.out.println("getSpot " + instrument);
         SpotTO spot = null;
         if(null == time) {
             spot = bitfinexService.getSpot(instrument);
