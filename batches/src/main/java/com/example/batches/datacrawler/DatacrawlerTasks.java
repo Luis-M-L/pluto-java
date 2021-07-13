@@ -29,9 +29,9 @@ public class DatacrawlerTasks {
     }
 
     private static byte[] getSpot(String par){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/spot/" + par)).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spot/" + par)).build();
         HttpResponse<byte[]> response = null;
-
+        LOG.info(request.uri().toString());
         try {
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofByteArray());
         } catch (IOException e) {
@@ -46,7 +46,7 @@ public class DatacrawlerTasks {
     }
 
     private static void requestSave(byte[] body){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48557/persistence/spot"))
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://persistencia:8080/persistence/spot"))
                 .method("POST", HttpRequest.BodyPublishers.ofByteArray(body))
                 .setHeader("Content-Type", "application/json")
                 .build();
