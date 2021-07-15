@@ -3,8 +3,8 @@ package com.example.pluto.entities;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "PLUTO_CRYTPOCURRENCIES")
-public class CryptocurrencyTO {
+@Table(name = "PLUTO_INSTRUMENTS")
+public class InstrumentTO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -12,10 +12,10 @@ public class CryptocurrencyTO {
 
     private String ticker;
 
-    public CryptocurrencyTO() {
+    public InstrumentTO() {
     }
 
-    public CryptocurrencyTO(Long id, String ticker) {
+    public InstrumentTO(Long id, String ticker) {
         this.id = id;
         this.ticker = ticker;
     }
@@ -38,7 +38,7 @@ public class CryptocurrencyTO {
 
     @Override
     public String toString() {
-        return "CryptocurrencyTO{" +
+        return "InstrumentTO{" +
                 "id=" + id +
                 ", ticker='" + ticker + '\'' +
                 '}';
