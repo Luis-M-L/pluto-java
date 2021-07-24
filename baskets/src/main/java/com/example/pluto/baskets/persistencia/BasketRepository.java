@@ -1,4 +1,4 @@
-package com.example.pluto.persistencia.repositories;
+package com.example.pluto.baskets.persistencia;
 
 import com.example.pluto.entities.BasketTO;
 import org.springframework.data.repository.CrudRepository;

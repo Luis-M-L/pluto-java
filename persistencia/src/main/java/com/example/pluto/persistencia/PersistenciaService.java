@@ -35,4 +35,5 @@ public class PersistenciaService {
     public void save(InstrumentTO ccy){
         instrumentRepository.save(ccy);
     }
+
 }

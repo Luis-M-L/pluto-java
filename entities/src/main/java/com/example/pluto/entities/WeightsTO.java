@@ -7,14 +7,25 @@ import javax.persistence.*;
 public class WeightsTO {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String instrument;
     private Double weight;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
+    @PrimaryKeyJoinColumn(name = "BASKET_ID")
     private BasketTO basket;
+
+    public WeightsTO() {
+    }
+
+    public WeightsTO(Long id, String instrument, Double weight, BasketTO basket) {
+        this.id = id;
+        this.instrument = instrument;
+        this.weight = weight;
+        this.basket = basket;
+    }
 
     public Long getId() {
         return id;

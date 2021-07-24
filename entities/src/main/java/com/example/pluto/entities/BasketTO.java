@@ -8,20 +8,22 @@ import java.util.List;
 public class BasketTO {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "BASKET_ID")
     private Long id;
 
     private String label;
 
-    @OneToMany( mappedBy = "basket", cascade = CascadeType.ALL)
+    @OneToMany( mappedBy = "basket", cascade = {CascadeType.ALL})
     private List<WeightsTO> weights;
 
     public BasketTO() {
     }
 
-    public BasketTO(Long id, String ticker) {
+    public BasketTO(Long id, String ticker, List<WeightsTO> weights) {
         this.id = id;
         this.label = ticker;
+        this.weights = weights;
     }
 
     public Long getId() {
@@ -38,6 +40,14 @@ public class BasketTO {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public List<WeightsTO> getWeights() {
+        return weights;
+    }
+
+    public void setWeights(List<WeightsTO> weights) {
+        this.weights = weights;
     }
 
     @Override
