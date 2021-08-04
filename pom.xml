@@ -10,6 +10,7 @@
 		<module>bitfinex</module>
         <module>persistencia</module>
         <module>batches</module>
+        <module>baskets</module>
     </modules>
 
 	<parent>
