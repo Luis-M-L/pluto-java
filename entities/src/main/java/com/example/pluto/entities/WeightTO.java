@@ -1,26 +1,29 @@
 package com.example.pluto.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "PLUTO_WEIGHTS")
-public class WeightsTO {
+public class WeightTO {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String instrument;
     private Double weight;
 
-    @ManyToOne(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
-    @PrimaryKeyJoinColumn(name = "BASKET_ID")
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "BASKET_ID")
+    @JsonBackReference
     private BasketTO basket;
 
-    public WeightsTO() {
+    public WeightTO() {
     }
 
-    public WeightsTO(Long id, String instrument, Double weight, BasketTO basket) {
+    public WeightTO(Long id, String instrument, Double weight, BasketTO basket) {
         this.id = id;
         this.instrument = instrument;
         this.weight = weight;

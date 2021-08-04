@@ -3,6 +3,8 @@ package com.example.pluto.baskets;
 import com.example.pluto.baskets.persistencia.BasketRepository;
 import com.example.pluto.baskets.persistencia.WeightsRepository;
 import com.example.pluto.entities.BasketTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.Optional;
 
 @Service
 public class BasketsService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BasketsService.class);
 
     @Autowired
     public BasketRepository basketRepository;
@@ -32,7 +36,12 @@ public class BasketsService {
     }
 
     public void save(BasketTO basket) {
-        basketRepository.save(basket);
+        if(!getAllBaskets().contains(basket)) {
+            basketRepository.save(basket);
+            basket.getWeights().forEach(w -> weightsRepository.save(w));
+        } else {
+            LOG.warn("Tried to persist an existing basket: " + basket.getLabel());
+        }
     }
 
 }
