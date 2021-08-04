@@ -24,11 +24,11 @@ public class DatacrawlerTasks {
 
     public static void registerSpots(){
         LOG.info("Registering spot data");
-        getParesVigilados().forEach(par -> requestSave(getSpot(par.getTicker())));
+        getParesVigilados().forEach(par -> requestSave(par.getTicker()));
     }
 
     private static List<InstrumentTO> getParesVigilados(){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://persistencia:8080/persistence/instruments/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://persistencia:8080/instruments/")).build();
         HttpResponse<String> response = null;
         List<InstrumentTO> vigilados = new ArrayList<>();
         try {
@@ -43,26 +43,9 @@ public class DatacrawlerTasks {
         return vigilados;
     }
 
-    private static byte[] getSpot(String par){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spot/" + par)).build();
-        HttpResponse<byte[]> response = null;
-        LOG.info(request.uri().toString());
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofByteArray());
-        } catch (IOException e) {
-            LOG.error(String.format("Error getting spot for %s", par));
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            LOG.error(String.format("Error getting spot for %s", par));
-            e.printStackTrace();
-        }
-
-        return response.body();
-    }
-
-    private static void requestSave(byte[] body){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://persistencia:8080/persistence/spot"))
-                .method("POST", HttpRequest.BodyPublishers.ofByteArray(body))
+    private static void requestSave(String instrument){
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spot/" + instrument))
+                .method("POST", HttpRequest.BodyPublishers.noBody())
                 .setHeader("Content-Type", "application/json")
                 .build();
         try{
