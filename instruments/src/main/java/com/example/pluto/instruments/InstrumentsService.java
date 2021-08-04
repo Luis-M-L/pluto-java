@@ -1,9 +1,9 @@
-package com.example.pluto.persistencia;
+package com.example.pluto.instruments;
 
 import com.example.pluto.entities.InstrumentTO;
 import com.example.pluto.entities.SpotTO;
-import com.example.pluto.persistencia.repositories.InstrumentRepository;
-import com.example.pluto.persistencia.repositories.SpotRepository;
+import com.example.pluto.instruments.repositories.InstrumentRepository;
+import com.example.pluto.instruments.repositories.SpotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class PersistenciaService {
+public class InstrumentsService {
 
     @Autowired
     public SpotRepository spotRepository;
@@ -19,7 +19,7 @@ public class PersistenciaService {
     @Autowired
     public InstrumentRepository instrumentRepository;
 
-    public PersistenciaService() {
+    public InstrumentsService() {
     }
 
     public void save(SpotTO spot) {

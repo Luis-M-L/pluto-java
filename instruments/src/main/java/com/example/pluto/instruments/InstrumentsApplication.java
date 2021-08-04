@@ -1,4 +1,4 @@
-package com.example.pluto.persistencia;
+package com.example.pluto.instruments;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @EnableJpaRepositories
 @EntityScan("com.example.pluto.entities")
-public class PersistenciaApplication {
+public class InstrumentsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PersistenciaApplication.class, args);
+        SpringApplication.run(InstrumentsApplication.class, args);
     }
 
 }

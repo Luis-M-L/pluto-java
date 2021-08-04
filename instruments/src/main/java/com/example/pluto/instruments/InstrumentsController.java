@@ -1,4 +1,4 @@
-package com.example.pluto.persistencia;
+package com.example.pluto.instruments;
 
 import com.example.pluto.entities.InstrumentTO;
 import org.slf4j.Logger;
@@ -10,23 +10,23 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/instruments")
-public class PersistenciaController {
+public class InstrumentsController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PersistenciaController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InstrumentsController.class);
 
     @Autowired
-    PersistenciaService persistenciaService;
+    InstrumentsService instrumentsService;
 
     @GetMapping
     public List<InstrumentTO> getInstruments(){
         LOG.info("get instruments");
-        return persistenciaService.getAllCryptocurrencies();
+        return instrumentsService.getAllCryptocurrencies();
     }
 
     @PostMapping
     public void saveInstrument(@RequestBody InstrumentTO ccy){
         LOG.info("saveInstrument " + ccy.toString());
-        persistenciaService.save(ccy);
+        instrumentsService.save(ccy);
     }
 
 }

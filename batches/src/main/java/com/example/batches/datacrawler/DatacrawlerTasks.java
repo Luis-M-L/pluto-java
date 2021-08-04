@@ -28,7 +28,7 @@ public class DatacrawlerTasks {
     }
 
     private static List<InstrumentTO> getParesVigilados(){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://persistencia:8080/instruments/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://instruments:8080/instruments/")).build();
         HttpResponse<String> response = null;
         List<InstrumentTO> vigilados = new ArrayList<>();
         try {

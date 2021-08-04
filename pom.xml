@@ -8,7 +8,7 @@
 		<module>entities</module>
 		<module>interfaces</module>
 		<module>bitfinex</module>
-        <module>persistencia</module>
+        <module>instruments</module>
         <module>batches</module>
         <module>baskets</module>
     </modules>

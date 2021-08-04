@@ -21,9 +21,9 @@ services:
     ports:
       - "48558:8080"
 
-  persistencia:
+  instruments:
     build:
-      context: ./persistencia/
+      context: ./instruments/
       dockerfile: Dockerfile
     ports:
     - "48557:8080"

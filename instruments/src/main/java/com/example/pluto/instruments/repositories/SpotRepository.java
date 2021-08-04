@@ -1,7 +1,6 @@
-package com.example.pluto.persistencia.repositories;
+package com.example.pluto.instruments.repositories;
 
 import com.example.pluto.entities.SpotTO;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
