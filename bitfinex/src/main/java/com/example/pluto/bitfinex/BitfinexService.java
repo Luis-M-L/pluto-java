@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex;
 
+import com.example.pluto.bitfinex.repositories.SpotRepository;
 import com.example.pluto.entities.SnapshotTO;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.exchanges.ExchangeService;
@@ -16,6 +17,9 @@ public class BitfinexService implements ExchangeService {
 
     @Autowired
     BitfinexParser parser;
+
+    @Autowired
+    SpotRepository spotRepository;
 
     @Override
     public SnapshotTO getSnapshot(String instrument) {
@@ -45,6 +49,11 @@ public class BitfinexService implements ExchangeService {
     @Override
     public SpotTO getSpot(String instrument, String time) {
         return null;
+    }
+
+    @Override
+    public SpotTO saveSpot(SpotTO spot) {
+        return spotRepository.save(spot);
     }
 
 }

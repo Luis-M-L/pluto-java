@@ -12,4 +12,6 @@ public interface ExchangeService {
     SpotTO getSpot(String instrument);
 
     SpotTO getSpot(String instrument, String time);
+
+    SpotTO saveSpot(SpotTO spot);
 }

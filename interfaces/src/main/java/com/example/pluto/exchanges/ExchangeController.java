@@ -3,9 +3,7 @@ package com.example.pluto.exchanges;
 import com.example.pluto.entities.BookTO;
 import com.example.pluto.entities.SnapshotTO;
 import com.example.pluto.entities.SpotTO;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 public interface ExchangeController {
 
@@ -14,6 +12,9 @@ public interface ExchangeController {
 
     @GetMapping(value = "spot/{instrument}")
     SpotTO getSpot(@PathVariable String instrument, @RequestParam(required = false) String time);
+
+    @PostMapping(value = "spot/{instrument}")
+    boolean saveSpot(@PathVariable String instrument, @RequestBody(required = false) SpotTO spot);
 
     @GetMapping(value = "volume/{instrument}")
     int getVolume(@PathVariable String instrument, @RequestParam(required = false) String time);
