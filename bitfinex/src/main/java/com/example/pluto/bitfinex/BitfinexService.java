@@ -1,7 +1,6 @@
 package com.example.pluto.bitfinex;
 
 import com.example.pluto.bitfinex.repositories.SpotRepository;
-import com.example.pluto.entities.SnapshotTO;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.exchanges.ExchangeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +19,6 @@ public class BitfinexService implements ExchangeService {
 
     @Autowired
     SpotRepository spotRepository;
-
-    @Override
-    public SnapshotTO getSnapshot(String instrument) {
-        return null;
-    }
-
-    @Override
-    public SnapshotTO getSnapshot(String instrument, String time) {
-        return null;
-    }
 
     @Override
     public SpotTO getSpot(String instrument) {

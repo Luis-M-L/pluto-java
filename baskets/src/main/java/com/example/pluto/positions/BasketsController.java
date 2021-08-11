@@ -1,4 +1,4 @@
-package com.example.pluto.baskets;
+package com.example.pluto.positions;
 
 import com.example.pluto.entities.BasketTO;
 import org.slf4j.Logger;

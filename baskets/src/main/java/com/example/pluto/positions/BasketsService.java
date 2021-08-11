@@ -1,7 +1,7 @@
-package com.example.pluto.baskets;
+package com.example.pluto.positions;
 
-import com.example.pluto.baskets.persistencia.BasketRepository;
-import com.example.pluto.baskets.persistencia.WeightsRepository;
+import com.example.pluto.positions.repositories.BasketRepository;
+import com.example.pluto.positions.repositories.WeightsRepository;
 import com.example.pluto.entities.BasketTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

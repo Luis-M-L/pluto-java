@@ -1,4 +1,4 @@
-package com.example.pluto.baskets.persistencia;
+package com.example.pluto.positions.repositories;
 
 import com.example.pluto.entities.WeightTO;
 import org.springframework.data.repository.CrudRepository;
