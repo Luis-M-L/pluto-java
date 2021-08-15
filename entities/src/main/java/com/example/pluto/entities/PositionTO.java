@@ -14,9 +14,7 @@ public class PositionTO {
     @JoinColumn(name = "BASKET_ID")
     private BasketTO basket;
 
-    @ManyToOne
-    @JoinColumn(name = "ticker")
-    private InstrumentTO instrument;
+    private String currency;
 
     private Double quantity;
 
@@ -31,12 +29,12 @@ public class PositionTO {
         this.basket = basket;
     }
 
-    public InstrumentTO getInstrument() {
-        return instrument;
+    public String getCurrency() {
+        return currency;
     }
 
-    public void setInstrument(InstrumentTO instrument) {
-        this.instrument = instrument;
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
     public Double getQuantity() {

@@ -15,6 +15,7 @@ public class SpotTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    // TODO: convertir a objeto InstrumentTO
     private String instrument;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
