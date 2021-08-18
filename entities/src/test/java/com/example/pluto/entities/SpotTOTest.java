@@ -12,9 +12,9 @@ public class SpotTOTest {
 
     private String instrument = "BTCUSD";
     private Timestamp timestamp = Timestamp.valueOf("2021-06-26 12:04:30");
-    private Double bid = 1.0;
-    private Double offer = 2.0;
-    private Double mid = 1.5;
+    private Double bid = 5.0;
+    private Double offer = 3.0;
+    private Double mid = 4.0;
     private Double volume = 4069.14892134;
 
     @Before

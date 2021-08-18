@@ -32,7 +32,7 @@ public class SpotTO {
         this.timestamp = timestamp;
         this.bid = bid;
         this.offer = offer;
-        this.mid = (bid != null && offer != null) ? bid + offer / 2 : null;
+        this.mid = (bid != null && offer != null) ? (bid + offer) / 2 : null;
         this.volume = volume;
     }
 
