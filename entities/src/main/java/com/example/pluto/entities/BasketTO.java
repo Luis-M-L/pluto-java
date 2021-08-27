@@ -24,9 +24,9 @@ public class BasketTO {
     public BasketTO() {
     }
 
-    public BasketTO(Long id, String ticker, List<WeightTO> weights) {
+    public BasketTO(Long id, String label, List<WeightTO> weights) {
         this.id = id;
-        this.label = ticker;
+        this.label = label;
         weights.forEach(w -> w.setBasket(this));
         this.weights = weights;
     }

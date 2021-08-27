@@ -21,6 +21,13 @@ public class PositionTO {
     public PositionTO() {
     }
 
+    public PositionTO(Long id, BasketTO basket, String currency, Double quantity) {
+        this.id = id;
+        this.basket = basket;
+        this.currency = currency;
+        this.quantity = quantity;
+    }
+
     public BasketTO getBasket() {
         return basket;
     }
