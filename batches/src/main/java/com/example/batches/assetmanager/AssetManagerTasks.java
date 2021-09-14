@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,6 +17,8 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 public class AssetManagerTasks {
+
+    private static MathContext mathContext = new MathContext(10, RoundingMode.HALF_UP);
 
     public static void rebalance() {
         List<BasketTO> baskets = getBaskets();
@@ -40,12 +43,15 @@ public class AssetManagerTasks {
         return actual;
     }
 
-    private static void turnEquivalentIntoWeights(List<BasketTO> actual, Map<BasketTO, Map<String, Double>> equivalent, Map<BasketTO, Double> total) {
+    public static void turnEquivalentIntoWeights(List<BasketTO> actual, Map<BasketTO, Map<String, Double>> equivalent, Map<BasketTO, Double> total) {
         actual.forEach(b -> {
             b.getWeights().forEach(w -> {
                 Map<String, Double> basketInfoFromEquivalent = equivalent.get(b);
-                double equivalentPositionForCcy = basketInfoFromEquivalent.get(w.getCurrency());
-                w.setWeight(equivalentPositionForCcy / total.get(b));
+                Double equivalentPositionForCcy = basketInfoFromEquivalent.get(w.getCurrency());
+                BigDecimal totalPreciso = new BigDecimal(total.get(b), mathContext).setScale(10);
+                BigDecimal equivalentPositionForCcyPreciso = new BigDecimal(equivalentPositionForCcy, mathContext).setScale(10);
+                BigDecimal weight = equivalentPositionForCcyPreciso.divide(totalPreciso, RoundingMode.HALF_UP).round(mathContext).setScale(10);
+                w.setWeight(weight.doubleValue());
             });
         });
     }
@@ -73,10 +79,9 @@ public class AssetManagerTasks {
         Map<BasketTO, Map<String, Double>> equivalent = new HashMap<>();
         spots.put("BTC", 1.0);      // Base for equivalency
         for (PositionTO p : positions) {
-            MathContext mathContext = new MathContext(8);
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
             BigDecimal price = new BigDecimal(spots.get(p.getCurrency()), mathContext);
-            BigDecimal eq = quantity.multiply(price);
+            BigDecimal eq = quantity.multiply(price, mathContext);
 
             equivalent.putIfAbsent(p.getBasket(), new HashMap<>());
             equivalent.get(p.getBasket()).put(p.getCurrency(), eq.doubleValue());

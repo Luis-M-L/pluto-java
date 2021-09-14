@@ -61,13 +61,18 @@ public class BasketTO {
         return "InstrumentTO{" +
                 "id=" + id +
                 ", label='" + label + '\'' +
-                '}';
+                ", weights={" + weights.toString() + "}";
     }
 
-    public boolean equals(Object comparing){
+    public boolean equals(Object comparing) {
+        if (comparing.getClass() != BasketTO.class) {
+            return false;
+        }
         BasketTO comp = (BasketTO) comparing;
-        String compLabel = comp.getLabel() != null ? comp.getLabel() : "comparing label void";
-        String refLabel = this.getLabel() != null ? this.getLabel() : "reference label void";
-        return compLabel.equals(refLabel);
+        return this.equals(comp);
+    }
+
+    public boolean equals(BasketTO comp) {
+        return comp.getWeights().equals(this.getWeights());
     }
 }

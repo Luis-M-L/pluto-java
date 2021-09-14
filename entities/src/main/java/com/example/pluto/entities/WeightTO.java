@@ -68,7 +68,23 @@ public class WeightTO {
                 "id=" + id +
                 ", instrument=" + currency +
                 ", weight=" + weight +
-                ", basket=" + basket +
+                ", basket=" + basket.getLabel() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object comparing){
+        if (comparing.getClass() != WeightTO.class) {
+            return false;
+        }
+        WeightTO wComparing = (WeightTO) comparing;
+        return this.equals(wComparing);
+    }
+
+    public boolean equals(WeightTO comp) {
+        if (comp.getCurrency() == null || comp.getWeight() == null || this.getCurrency() == null || this.getWeight() == null) {
+            return false;
+        }
+        return comp.getCurrency().equals(this.getCurrency()) && comp.getWeight().equals(this.getWeight());
     }
 }
