@@ -20,7 +20,7 @@ public class AssetManagerTasksTest {
     public static Map<BasketTO, Map<String, Double>> equivalent;
     public static Map<BasketTO, Double> equivalentSum;
     public static List<BasketTO> baskets;
-    public static List<BasketTO> positionsAsWeights;
+    public static List<PositionTO> wished;
 
     @BeforeEach
     public void setUp(){
@@ -31,24 +31,15 @@ public class AssetManagerTasksTest {
         fillEquivalent(basketBasica, basketGrowth);
         fillEquivalentSum(basketBasica, basketGrowth);
         fillBaskets(basketBasica, basketGrowth);
-        fillPositionsAsWeights();
+        fillWished();
     }
 
     @Test
-    public void testTurnEquivalentIntoWeights() {
+    public void testGetCurrentWishedPositions() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        List<BasketTO> actual = new ArrayList<>(baskets);
-        amt.turnEquivalentIntoWeights(actual, equivalent, equivalentSum);
+        List<PositionTO> actual = amt.getCurrentWishedPositions(baskets, spotsMap, equivalentSum);
 
-        assertEquals(positionsAsWeights.get(0), actual.get(0));
-    }
-
-    @Test
-    public void testGetEquivalentSumByBasket(){
-        AssetManagerTasks amt = new AssetManagerTasks();
-        Map<BasketTO, Double> actual = amt.getEquivalentSumByBasket(equivalent);
-
-        assertEquals(equivalentSum, actual);
+        assertEquals(wished, actual);
     }
 
     @Test
@@ -60,39 +51,19 @@ public class AssetManagerTasksTest {
     }
 
     @Test
+    public void testGetEquivalentSumByBasket(){
+        AssetManagerTasks amt = new AssetManagerTasks();
+        Map<BasketTO, Double> actual = amt.getEquivalentSumByBasket(positions, spotsMap);
+
+        assertEquals(equivalentSum, actual);
+    }
+
+    @Test
     public void testAsMap() {
         AssetManagerTasks amt = new AssetManagerTasks();
         Map<String, Double> actual = amt.asMap(spotsList);
 
         assertEquals(spotsMap, actual);
-    }
-
-    private static void fillPositionsAsWeights() {
-        positionsAsWeights = new ArrayList<>();
-        List<WeightTO> weightsA = Arrays.asList(
-                new WeightTO(null, "BTC", 0.0, null),
-                new WeightTO(null, "ETH", 0.0, null),
-                new WeightTO(null, "XMR", 0.0, null)
-        );
-        List<WeightTO> weightsB = Arrays.asList(
-                new WeightTO(null, "BTC", 0.0, null),
-                new WeightTO(null, "ETH", 0.0, null),
-                new WeightTO(null, "XMR", 0.0, null),
-                new WeightTO(null, "ADA", 0.0, null),
-                new WeightTO(null, "IOT", 0.0, null)
-        );
-        positionsAsWeights.add(new BasketTO(7L, "basica", weightsA));
-        positionsAsWeights.add(new BasketTO(6L, "growth", weightsB));
-
-        positionsAsWeights.get(1).getWeights().get(0).setWeight(0.1542932085);
-        positionsAsWeights.get(1).getWeights().get(1).setWeight(0.2059300023);
-        positionsAsWeights.get(1).getWeights().get(2).setWeight(0.2571553475);
-        positionsAsWeights.get(1).getWeights().get(3).setWeight(0.2797850181);
-        positionsAsWeights.get(1).getWeights().get(4).setWeight(0.1028364234);
-
-        positionsAsWeights.get(0).getWeights().get(0).setWeight(0.9781577377);
-        positionsAsWeights.get(0).getWeights().get(1).setWeight(0.0215194702);
-        positionsAsWeights.get(0).getWeights().get(2).setWeight(0.0003227921);
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {
@@ -104,7 +75,7 @@ public class AssetManagerTasksTest {
     private static void fillEquivalentSum(BasketTO basketBasica, BasketTO basketGrowth) {
         equivalentSum = new HashMap<>(2);
         equivalentSum.put(basketBasica, 0.511165);
-        equivalentSum.put(basketGrowth, 0.972175);
+        equivalentSum.put(basketGrowth, 1.000055);
     }
 
     private static void fillEquivalent(BasketTO basketBasica, BasketTO basketGrowth) {
@@ -115,7 +86,7 @@ public class AssetManagerTasksTest {
         equivalent.get(basketBasica).put("XMR", 0.000165);
         equivalent.put(basketGrowth, new HashMap<>());
         equivalent.get(basketGrowth).put("BTC", 0.15);
-        equivalent.get(basketGrowth).put("ADA", 0.272);
+        equivalent.get(basketGrowth).put("ADA", 0.29988);
         equivalent.get(basketGrowth).put("XMR", 0.25);
         equivalent.get(basketGrowth).put("ETH", 0.2002);
         equivalent.get(basketGrowth).put("IOT", 0.099975);
@@ -154,10 +125,11 @@ public class AssetManagerTasksTest {
 
     private static void fillSpotsMap() {
         spotsMap = new HashMap<>(6);
+        spotsMap.put("BTC", 1.0);
         spotsMap.put("ETH", 0.11);
         spotsMap.put("BCH", 0.019);
         spotsMap.put("XMR", 0.005);
-        spotsMap.put("ADA", 0.00004);
+        spotsMap.put("ADA", 0.0000441);
         spotsMap.put("IOT", 0.0000215);
     }
 
@@ -168,5 +140,17 @@ public class AssetManagerTasksTest {
         spotsList.add(new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0051, 0.0049, 3000.0));
         spotsList.add(new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0000442, 0.000044, 4000.0));
         spotsList.add(new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000023, 0.00002, 500.0));
+    }
+
+    private void fillWished() {
+        wished = new ArrayList<>(8);
+        wished.add(new PositionTO(null, baskets.get(0), "BTC", 0.408932));
+        wished.add(new PositionTO(null, baskets.get(0), "ETH", 0.6970431818));
+        wished.add(new PositionTO(null, baskets.get(0), "XMR", 5.11165));
+        wished.add(new PositionTO(null, baskets.get(1), "BTC", 0.15000825));
+        wished.add(new PositionTO(null, baskets.get(1), "ETH", 1.8182818182));
+        wished.add(new PositionTO(null, baskets.get(1), "XMR", 50.00275));
+        wished.add(new PositionTO(null, baskets.get(1), "ADA", 6803.0952380952));
+        wished.add(new PositionTO(null, baskets.get(1), "IOT", 4651.4186046512));
     }
 }

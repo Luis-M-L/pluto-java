@@ -51,4 +51,17 @@ public class PositionTO {
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PositionTO)) {
+            return false;
+        }
+        PositionTO comp = (PositionTO) obj;
+        if (this.getCurrency() == null || comp.getCurrency() == null
+            || this.getQuantity() == null || comp.getQuantity() == null) {
+            return false;
+        }
+        return this.getCurrency().equals(comp.getCurrency()) && this.getQuantity().equals(comp.getQuantity());
+    }
 }

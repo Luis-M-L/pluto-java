@@ -3,6 +3,7 @@ package com.example.batches.assetmanager;
 import com.example.pluto.entities.BasketTO;
 import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.WeightTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -18,45 +19,46 @@ import java.util.*;
 
 public class AssetManagerTasks {
 
-    private static MathContext mathContext = new MathContext(10, RoundingMode.HALF_UP);
+    private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static void rebalance() {
         List<BasketTO> baskets = getBaskets();
         Map<String, Double> spots = getSpots();
         List<PositionTO> positions = getPositions();
 
-        List<BasketTO> exposure = calculateActualWeights(positions, spots, new ArrayList<>(baskets));
         double threshold = 0.05;
-        Map<String, Double> flows = calculateFlows(baskets, exposure, threshold);
+        Map<String, Double> deviation = calculateDeviation(baskets, spots, positions, threshold);
         //List<TradeTO> trades = calculateTrades(positions, flows);
     }
 
-    private static Map<String, Double> calculateFlows(List<BasketTO> baskets, List<BasketTO> exposure, double threshold) {
+    private static Map<String, Double> calculateDeviation(List<BasketTO> baskets, Map<String, Double> spots, List<PositionTO> positions, double threshold) {
+        Map<BasketTO, Double> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
+        List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
         return null;
     }
 
-    private static List<BasketTO> calculateActualWeights(List<PositionTO> positions, Map<String, Double> spots, List<BasketTO> actual) {
+    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, Double> spots, Map<BasketTO, Double> sums) {
+        List<PositionTO> wished = new ArrayList<>();
+
+        for (BasketTO basket : baskets) {
+            BigDecimal sum = new BigDecimal(sums.get(basket), mathContext);
+
+            for (WeightTO weight : basket.getWeights()) {
+                BigDecimal price = new BigDecimal(spots.get(weight.getCurrency()), mathContext);
+                BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
+
+                BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
+                PositionTO position = new PositionTO(null, basket, weight.getCurrency(), q.doubleValue());
+
+                wished.add(position);
+            }
+        }
+        return wished;
+    }
+
+    public static Map<BasketTO, Double> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, Double> spots) {
         Map<BasketTO, Map<String, Double>> equivalent = turnPositionsIntoEquivalent(positions, spots);
-        Map<BasketTO, Double> basketSums = getEquivalentSumByBasket(equivalent);
-        turnEquivalentIntoWeights(actual, equivalent, basketSums);
 
-        return actual;
-    }
-
-    public static void turnEquivalentIntoWeights(List<BasketTO> actual, Map<BasketTO, Map<String, Double>> equivalent, Map<BasketTO, Double> total) {
-        actual.forEach(b -> {
-            b.getWeights().forEach(w -> {
-                Map<String, Double> basketInfoFromEquivalent = equivalent.get(b);
-                Double equivalentPositionForCcy = basketInfoFromEquivalent.get(w.getCurrency());
-                BigDecimal totalPreciso = new BigDecimal(total.get(b), mathContext).setScale(10);
-                BigDecimal equivalentPositionForCcyPreciso = new BigDecimal(equivalentPositionForCcy, mathContext).setScale(10);
-                BigDecimal weight = equivalentPositionForCcyPreciso.divide(totalPreciso, RoundingMode.HALF_UP).round(mathContext).setScale(10);
-                w.setWeight(weight.doubleValue());
-            });
-        });
-    }
-
-    public static Map<BasketTO, Double> getEquivalentSumByBasket(Map<BasketTO, Map<String, Double>> equivalent) {
         Map<BasketTO, Double> eq = new HashMap<>(equivalent.size());
         equivalent.keySet().forEach(
                 k -> eq.put(k, getEquivalentSum(equivalent.get(k)))
@@ -81,7 +83,7 @@ public class AssetManagerTasks {
         for (PositionTO p : positions) {
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
             BigDecimal price = new BigDecimal(spots.get(p.getCurrency()), mathContext);
-            BigDecimal eq = quantity.multiply(price, mathContext);
+            BigDecimal eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
 
             equivalent.putIfAbsent(p.getBasket(), new HashMap<>());
             equivalent.get(p.getBasket()).put(p.getCurrency(), eq.doubleValue());
@@ -90,7 +92,7 @@ public class AssetManagerTasks {
     }
 
     private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/spot/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://trader:8080/spot/")).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {
@@ -135,6 +137,7 @@ public class AssetManagerTasks {
         spots.forEach(s -> {
             res.putIfAbsent(s.getInstrument().replace("BTC", ""), s.getMid());
         });
+        res.putIfAbsent("BTC", 1.0);
         return res;
     }
 
