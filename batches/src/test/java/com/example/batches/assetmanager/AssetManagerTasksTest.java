@@ -27,6 +27,7 @@ public class AssetManagerTasksTest {
     public static List<BasketTO> baskets;
     public static List<PositionTO> wished;
     public static Map<PositionTO, BigDecimal> deviations;
+    public static Map<PositionTO, BigDecimal> filteredDeviations;
 
     @BeforeEach
     public void setUp(){
@@ -39,6 +40,7 @@ public class AssetManagerTasksTest {
         fillBaskets(basketBasica, basketGrowth);
         fillWished();
         fillDeviations();
+        fillFilteredDeviations();
     }
 
     @Test
@@ -76,10 +78,17 @@ public class AssetManagerTasksTest {
     @Test
     public void testGetDeviations() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        List<PositionTO> idealPositions = new ArrayList<>(positions);
         Map<PositionTO, BigDecimal> actual = amt.getDeviations(positions, wished);
 
         assertEquals(deviations, actual);
+    }
+
+    @Test
+    public void testFilterDeviations() {
+        AssetManagerTasks amt = new AssetManagerTasks();
+        Map<PositionTO, BigDecimal> actual = amt.filterDeviations(deviations, 0.05, equivalentSum, spotsMap);
+
+        assertEquals(filteredDeviations, actual);
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {
@@ -181,4 +190,11 @@ public class AssetManagerTasksTest {
         deviations.put(positions.get(6), new BigDecimal(-3.0952380952   , mathContext).setScale(10, RoundingMode.HALF_UP));
         deviations.put(positions.get(7), new BigDecimal(-0.00000825     , mathContext).setScale(10, RoundingMode.HALF_UP));
     }
+
+    private void fillFilteredDeviations() {
+        filteredDeviations = new HashMap<>();
+        filteredDeviations.put(positions.get(0), deviations.get(positions.get(0)));
+        filteredDeviations.put(positions.get(1), deviations.get(positions.get(1)));
+    }
+
 }

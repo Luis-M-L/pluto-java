@@ -35,16 +35,30 @@ public class AssetManagerTasks {
         Map<BasketTO, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
         Map<PositionTO, BigDecimal> deviations = getDeviations(positions, currentWishedPositions);
-        //Map<PositionTO, BigDecimal> rebalancing = filterDeviations(deviations, threshold, basketEquivalentSums, spots);
-        return null;
+        Map<PositionTO, BigDecimal> rebalancing = filterDeviations(deviations, threshold, basketEquivalentSums, spots);
+        return rebalancing;
     }
-/*
-    private static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<BasketTO, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
+
+    /**
+     * Filter deviations map to keep only the ones which must be corrected attending to the threshold
+     * @param deviations deviation values for each position
+     * @param threshold this limits which positions must be corrected and which not to (x per one, 100% = 1)
+     * @param basketEquivalentSums base to calculate deviation as percentage in the basket in order to compare to threshold
+     * @param spots map with the price of each currency over the base currency (BTC)
+     * @return
+     */
+    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<BasketTO, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
+        Map<PositionTO, BigDecimal> filtered = new HashMap<>();
         for (PositionTO p : deviations.keySet()) {
-            deviations.get(p).multiply(spots.get(p.getCurrency()));
+            BigDecimal deviationBtcEq = deviations.get(p).multiply(spots.get(p.getCurrency()));
+            BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket()), mathContext);
+            if (deviationOverSum.abs().doubleValue() > threshold) {
+                filtered.put(p, deviations.get(p));
+            }
         }
+        return filtered;
     }
-*/
+
     /**
      * Calculates the difference between what is and what should be for each position
      * @param positions actual positions
