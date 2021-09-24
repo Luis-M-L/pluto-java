@@ -21,6 +21,7 @@ public class AssetManagerTasksTest {
     public static Map<BasketTO, Double> equivalentSum;
     public static List<BasketTO> baskets;
     public static List<PositionTO> wished;
+    public static Map<PositionTO, Double> deviations;
 
     @BeforeEach
     public void setUp(){
@@ -32,6 +33,7 @@ public class AssetManagerTasksTest {
         fillEquivalentSum(basketBasica, basketGrowth);
         fillBaskets(basketBasica, basketGrowth);
         fillWished();
+        fillDeviations();
     }
 
     @Test
@@ -61,9 +63,18 @@ public class AssetManagerTasksTest {
     @Test
     public void testAsMap() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<String, Double> actual = amt.asMap(spotsList);
+        Map<String, Double> actual = amt.spotsAsMap(spotsList);
 
         assertEquals(spotsMap, actual);
+    }
+
+    @Test
+    public void testGetDeviations() {
+        AssetManagerTasks amt = new AssetManagerTasks();
+        List<PositionTO> idealPositions = new ArrayList<>(positions);
+        Map<PositionTO, Double> actual = amt.getDeviations(positions, wished);
+
+        assertEquals(deviations, actual);
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {
@@ -152,5 +163,17 @@ public class AssetManagerTasksTest {
         wished.add(new PositionTO(null, baskets.get(1), "XMR", 50.00275));
         wished.add(new PositionTO(null, baskets.get(1), "ADA", 6803.0952380952));
         wished.add(new PositionTO(null, baskets.get(1), "IOT", 4651.4186046512));
+    }
+
+    private void fillDeviations() {
+        deviations = new HashMap<>(8);
+        deviations.put(positions.get(0), 0.091068);
+        deviations.put(positions.get(1), -0.5970431818);
+        deviations.put(positions.get(2), -5.07865);
+        deviations.put(positions.get(3), -1.4186046512);
+        deviations.put(positions.get(4), 0.0017181818);
+        deviations.put(positions.get(5), -0.00275);
+        deviations.put(positions.get(6), -3.0952380952);
+        deviations.put(positions.get(7), -0.00000825);
     }
 }

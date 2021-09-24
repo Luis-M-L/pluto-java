@@ -27,16 +27,44 @@ public class AssetManagerTasks {
         List<PositionTO> positions = getPositions();
 
         double threshold = 0.05;
-        Map<String, Double> deviation = calculateDeviation(baskets, spots, positions, threshold);
+        Map<PositionTO, Double> deviation = getPositionsToMove(baskets, spots, positions, threshold);
         //List<TradeTO> trades = calculateTrades(positions, flows);
     }
 
-    private static Map<String, Double> calculateDeviation(List<BasketTO> baskets, Map<String, Double> spots, List<PositionTO> positions, double threshold) {
+    private static Map<PositionTO, Double> getPositionsToMove(List<BasketTO> baskets, Map<String, Double> spots, List<PositionTO> positions, double threshold) {
         Map<BasketTO, Double> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
+        Map<PositionTO, Double> deviations = getDeviations(positions, currentWishedPositions);
+
         return null;
     }
 
+    /**
+     * Calculates the difference between what is and what should be for each position
+     * @param positions actual positions
+     * @param currentWishedPositions positions that should be caring the basket design and current spots
+     * @return the excess in each position
+     */
+    public static Map<PositionTO, Double> getDeviations(List<PositionTO> positions, List<PositionTO> currentWishedPositions) {
+        Map<PositionTO, Double> deviations = new HashMap<>();
+        Map<BasketTO, Map<String, Double>> pos = positionsAsMap(positions);
+        Map<BasketTO, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
+        positions.forEach(p -> {
+            BigDecimal minuendo = new BigDecimal(pos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal sustraendo = new BigDecimal(currPos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext);
+            deviations.put(p, diferencia.doubleValue());
+        });
+        return deviations;
+    }
+
+    /**
+     * Calculates what the positions should be to fit into our designed weights with current spots
+     * @param baskets designed baskets with the weights
+     * @param spots map with the price of each currency over the base currency (BTC)
+     * @param sums sumatory in base currency (BTC) of all the positions in a basket
+     * @return the positions that we should have
+     */
     public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, Double> spots, Map<BasketTO, Double> sums) {
         List<PositionTO> wished = new ArrayList<>();
 
@@ -56,6 +84,12 @@ public class AssetManagerTasks {
         return wished;
     }
 
+    /**
+     * Returns the base currency (BTC) equivalent of all positions in a basket added
+     * @param positions list with each position (each currency in each basket)
+     * @param spots map with the price of each currency over the base currency (BTC)
+     * @return
+     */
     public static Map<BasketTO, Double> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, Double> spots) {
         Map<BasketTO, Map<String, Double>> equivalent = turnPositionsIntoEquivalent(positions, spots);
 
@@ -77,6 +111,12 @@ public class AssetManagerTasks {
         return sum;
     }
 
+    /**
+     * Calculate how much each position is in the base currency (BTC), in order to compare positions easily
+     * @param positions list with each position (each currency in each basket)
+     * @param spots map with the price of each currency over the base currency (BTC)
+     * @return Map with values in base currency for each alt currency in each basket
+     */
     public static Map<BasketTO, Map<String, Double>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, Double> spots) {
         Map<BasketTO, Map<String, Double>> equivalent = new HashMap<>();
         spots.put("BTC", 1.0);      // Base for equivalency
@@ -121,7 +161,7 @@ public class AssetManagerTasks {
             e.printStackTrace();
         }
 
-        return asMap(spots);
+        return AssetManagerTasks.spotsAsMap(spots);
     }
 
     /**
@@ -129,7 +169,7 @@ public class AssetManagerTasks {
      * @param spots list to be transformed
      * @return Map with basic info from the list
      */
-    public static Map<String, Double> asMap(List<SpotTO> spots) {
+    public static Map<String, Double> spotsAsMap(List<SpotTO> spots) {
         Map<String, Double> res = new HashMap<>();
         if (spots == null) {
             return res;
@@ -138,6 +178,30 @@ public class AssetManagerTasks {
             res.putIfAbsent(s.getInstrument().replace("BTC", ""), s.getMid());
         });
         res.putIfAbsent("BTC", 1.0);
+        return res;
+    }
+
+    /**
+     * Transforms a list of complete PositionTO objects into Map: name, spot
+     * @param positions list to be transformed
+     * @return Map with basic info from the list
+     */
+    public static Map<BasketTO, Map<String, Double>> positionsAsMap(List<PositionTO> positions) {
+        Map<BasketTO, Map<String, Double>> res = new HashMap<>();
+        if (positions == null) {
+            return res;
+        }
+        positions.forEach(p -> {
+            String currency = p.getCurrency();
+            Double quantity = p.getQuantity();
+            if (res.containsKey(p.getBasket())) {
+                res.get(p.getBasket()).put(currency, quantity);
+            } else {
+                Map<String, Double> value = new HashMap<>();
+                value.put(currency, quantity);
+                res.put(p.getBasket(), value);
+            }
+        });
         return res;
     }
 

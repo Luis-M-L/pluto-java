@@ -59,9 +59,12 @@ public class PositionTO {
         }
         PositionTO comp = (PositionTO) obj;
         if (this.getCurrency() == null || comp.getCurrency() == null
-            || this.getQuantity() == null || comp.getQuantity() == null) {
+            || this.getQuantity() == null || comp.getQuantity() == null
+            || this.getBasket() == null || comp.getBasket() == null) {
             return false;
         }
-        return this.getCurrency().equals(comp.getCurrency()) && this.getQuantity().equals(comp.getQuantity());
+        return this.getCurrency().equals(comp.getCurrency())
+                && this.getQuantity().equals(comp.getQuantity())
+                && this.getBasket().equals(comp.getBasket());
     }
 }
