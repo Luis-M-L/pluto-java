@@ -7,6 +7,9 @@ import com.example.pluto.entities.WeightTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -14,14 +17,16 @@ import static org.junit.Assert.assertEquals;
 
 public class AssetManagerTasksTest {
 
+    private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
+
     public static List<SpotTO> spotsList;
-    public static Map<String, Double> spotsMap;
+    public static Map<String, BigDecimal> spotsMap;
     public static List<PositionTO> positions;
-    public static Map<BasketTO, Map<String, Double>> equivalent;
-    public static Map<BasketTO, Double> equivalentSum;
+    public static Map<BasketTO, Map<String, BigDecimal>> equivalent;
+    public static Map<BasketTO, BigDecimal> equivalentSum;
     public static List<BasketTO> baskets;
     public static List<PositionTO> wished;
-    public static Map<PositionTO, Double> deviations;
+    public static Map<PositionTO, BigDecimal> deviations;
 
     @BeforeEach
     public void setUp(){
@@ -47,7 +52,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testTurnPositionsIntoEquivalent() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<BasketTO, Map<String, Double>> actual = amt.turnPositionsIntoEquivalent(positions, spotsMap);
+        Map<BasketTO, Map<String, BigDecimal>> actual = amt.turnPositionsIntoEquivalent(positions, spotsMap);
 
         assertEquals(equivalent, actual);
     }
@@ -55,7 +60,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testGetEquivalentSumByBasket(){
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<BasketTO, Double> actual = amt.getEquivalentSumByBasket(positions, spotsMap);
+        Map<BasketTO, BigDecimal> actual = amt.getEquivalentSumByBasket(positions, spotsMap);
 
         assertEquals(equivalentSum, actual);
     }
@@ -63,7 +68,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testAsMap() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<String, Double> actual = amt.spotsAsMap(spotsList);
+        Map<String, BigDecimal> actual = amt.spotsAsMap(spotsList);
 
         assertEquals(spotsMap, actual);
     }
@@ -72,7 +77,7 @@ public class AssetManagerTasksTest {
     public void testGetDeviations() {
         AssetManagerTasks amt = new AssetManagerTasks();
         List<PositionTO> idealPositions = new ArrayList<>(positions);
-        Map<PositionTO, Double> actual = amt.getDeviations(positions, wished);
+        Map<PositionTO, BigDecimal> actual = amt.getDeviations(positions, wished);
 
         assertEquals(deviations, actual);
     }
@@ -85,22 +90,22 @@ public class AssetManagerTasksTest {
 
     private static void fillEquivalentSum(BasketTO basketBasica, BasketTO basketGrowth) {
         equivalentSum = new HashMap<>(2);
-        equivalentSum.put(basketBasica, 0.511165);
-        equivalentSum.put(basketGrowth, 1.000055);
+        equivalentSum.put(basketBasica, new BigDecimal(0.511165, mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalentSum.put(basketGrowth, new BigDecimal(1.000055, mathContext).setScale(10, RoundingMode.HALF_UP));
     }
 
     private static void fillEquivalent(BasketTO basketBasica, BasketTO basketGrowth) {
         equivalent = new HashMap<>(2);
         equivalent.put(basketBasica, new HashMap<>());
-        equivalent.get(basketBasica).put("BTC", 0.5);
-        equivalent.get(basketBasica).put("ETH", 0.011);
-        equivalent.get(basketBasica).put("XMR", 0.000165);
+        equivalent.get(basketBasica).put("BTC", new BigDecimal(0.5      , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketBasica).put("ETH", new BigDecimal(0.011    , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketBasica).put("XMR", new BigDecimal(0.000165 , mathContext).setScale(10, RoundingMode.HALF_UP));
         equivalent.put(basketGrowth, new HashMap<>());
-        equivalent.get(basketGrowth).put("BTC", 0.15);
-        equivalent.get(basketGrowth).put("ADA", 0.29988);
-        equivalent.get(basketGrowth).put("XMR", 0.25);
-        equivalent.get(basketGrowth).put("ETH", 0.2002);
-        equivalent.get(basketGrowth).put("IOT", 0.099975);
+        equivalent.get(basketGrowth).put("BTC", new BigDecimal(0.15     , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth).put("ADA", new BigDecimal(0.29988  , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth).put("XMR", new BigDecimal(0.25     , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth).put("ETH", new BigDecimal(0.2002   , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth).put("IOT", new BigDecimal(0.099975 , mathContext).setScale(10, RoundingMode.HALF_UP));
     }
 
     private static BasketTO fillPositionsGrowth() {
@@ -136,12 +141,12 @@ public class AssetManagerTasksTest {
 
     private static void fillSpotsMap() {
         spotsMap = new HashMap<>(6);
-        spotsMap.put("BTC", 1.0);
-        spotsMap.put("ETH", 0.11);
-        spotsMap.put("BCH", 0.019);
-        spotsMap.put("XMR", 0.005);
-        spotsMap.put("ADA", 0.0000441);
-        spotsMap.put("IOT", 0.0000215);
+        spotsMap.put("BTC", new BigDecimal(1.0, mathContext));
+        spotsMap.put("ETH", new BigDecimal(0.11, mathContext));
+        spotsMap.put("BCH", new BigDecimal(0.019, mathContext));
+        spotsMap.put("XMR", new BigDecimal(0.005, mathContext));
+        spotsMap.put("ADA", new BigDecimal(0.0000441, mathContext));
+        spotsMap.put("IOT", new BigDecimal(0.0000215, mathContext));
     }
 
     private static void fillSpotsList() {
@@ -167,13 +172,13 @@ public class AssetManagerTasksTest {
 
     private void fillDeviations() {
         deviations = new HashMap<>(8);
-        deviations.put(positions.get(0), 0.091068);
-        deviations.put(positions.get(1), -0.5970431818);
-        deviations.put(positions.get(2), -5.07865);
-        deviations.put(positions.get(3), -1.4186046512);
-        deviations.put(positions.get(4), 0.0017181818);
-        deviations.put(positions.get(5), -0.00275);
-        deviations.put(positions.get(6), -3.0952380952);
-        deviations.put(positions.get(7), -0.00000825);
+        deviations.put(positions.get(0), new BigDecimal(0.091068        , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(1), new BigDecimal(-0.5970431818   , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(2), new BigDecimal(-5.07865        , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(3), new BigDecimal(-1.4186046512   , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(4), new BigDecimal(0.0017181818    , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(5), new BigDecimal(-0.00275        , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(6), new BigDecimal(-3.0952380952   , mathContext).setScale(10, RoundingMode.HALF_UP));
+        deviations.put(positions.get(7), new BigDecimal(-0.00000825     , mathContext).setScale(10, RoundingMode.HALF_UP));
     }
 }

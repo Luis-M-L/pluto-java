@@ -23,37 +23,43 @@ public class AssetManagerTasks {
 
     public static void rebalance() {
         List<BasketTO> baskets = getBaskets();
-        Map<String, Double> spots = getSpots();
+        Map<String, BigDecimal> spots = getSpots();
         List<PositionTO> positions = getPositions();
 
         double threshold = 0.05;
-        Map<PositionTO, Double> deviation = getPositionsToMove(baskets, spots, positions, threshold);
+        Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
         //List<TradeTO> trades = calculateTrades(positions, flows);
     }
 
-    private static Map<PositionTO, Double> getPositionsToMove(List<BasketTO> baskets, Map<String, Double> spots, List<PositionTO> positions, double threshold) {
-        Map<BasketTO, Double> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
+    private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
+        Map<BasketTO, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
-        Map<PositionTO, Double> deviations = getDeviations(positions, currentWishedPositions);
-
+        Map<PositionTO, BigDecimal> deviations = getDeviations(positions, currentWishedPositions);
+        //Map<PositionTO, BigDecimal> rebalancing = filterDeviations(deviations, threshold, basketEquivalentSums, spots);
         return null;
     }
-
+/*
+    private static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<BasketTO, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
+        for (PositionTO p : deviations.keySet()) {
+            deviations.get(p).multiply(spots.get(p.getCurrency()));
+        }
+    }
+*/
     /**
      * Calculates the difference between what is and what should be for each position
      * @param positions actual positions
      * @param currentWishedPositions positions that should be caring the basket design and current spots
      * @return the excess in each position
      */
-    public static Map<PositionTO, Double> getDeviations(List<PositionTO> positions, List<PositionTO> currentWishedPositions) {
-        Map<PositionTO, Double> deviations = new HashMap<>();
+    public static Map<PositionTO, BigDecimal> getDeviations(List<PositionTO> positions, List<PositionTO> currentWishedPositions) {
+        Map<PositionTO, BigDecimal> deviations = new HashMap<>();
         Map<BasketTO, Map<String, Double>> pos = positionsAsMap(positions);
         Map<BasketTO, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
         positions.forEach(p -> {
             BigDecimal minuendo = new BigDecimal(pos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
             BigDecimal sustraendo = new BigDecimal(currPos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
-            BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext);
-            deviations.put(p, diferencia.doubleValue());
+            BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext).setScale(10, RoundingMode.HALF_UP);
+            deviations.put(p, diferencia);
         });
         return deviations;
     }
@@ -65,14 +71,14 @@ public class AssetManagerTasks {
      * @param sums sumatory in base currency (BTC) of all the positions in a basket
      * @return the positions that we should have
      */
-    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, Double> spots, Map<BasketTO, Double> sums) {
+    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<BasketTO, BigDecimal> sums) {
         List<PositionTO> wished = new ArrayList<>();
 
         for (BasketTO basket : baskets) {
-            BigDecimal sum = new BigDecimal(sums.get(basket), mathContext);
+            BigDecimal sum = sums.get(basket);
 
             for (WeightTO weight : basket.getWeights()) {
-                BigDecimal price = new BigDecimal(spots.get(weight.getCurrency()), mathContext);
+                BigDecimal price = spots.get(weight.getCurrency());
                 BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
 
                 BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
@@ -90,25 +96,25 @@ public class AssetManagerTasks {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return
      */
-    public static Map<BasketTO, Double> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, Double> spots) {
-        Map<BasketTO, Map<String, Double>> equivalent = turnPositionsIntoEquivalent(positions, spots);
+    public static Map<BasketTO, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+        Map<BasketTO, Map<String, BigDecimal>> equivalent = turnPositionsIntoEquivalent(positions, spots);
 
-        Map<BasketTO, Double> eq = new HashMap<>(equivalent.size());
+        Map<BasketTO, BigDecimal> eq = new HashMap<>(equivalent.size());
         equivalent.keySet().forEach(
-                k -> eq.put(k, getEquivalentSum(equivalent.get(k)))
+                k -> eq.put(k, getEquivalentSum(equivalent.get(k)).setScale(10, RoundingMode.HALF_UP))
         );
         return eq;
     }
 
-    private static Double getEquivalentSum(Map<String, Double> equivalents) {
-        Double sum = 0.0;
-        for (Double v : equivalents.values()){
+    private static BigDecimal getEquivalentSum(Map<String, BigDecimal> equivalents) {
+        BigDecimal sum = new BigDecimal(0.0, mathContext);
+        for (BigDecimal v : equivalents.values()){
             if (v == null) {
                 throw new IllegalArgumentException("Received null position quantity");
             }
-            sum += v;
+            sum = sum.add(v);
         }
-        return sum;
+        return sum.setScale(10, RoundingMode.HALF_UP);
     }
 
     /**
@@ -117,16 +123,16 @@ public class AssetManagerTasks {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return Map with values in base currency for each alt currency in each basket
      */
-    public static Map<BasketTO, Map<String, Double>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, Double> spots) {
-        Map<BasketTO, Map<String, Double>> equivalent = new HashMap<>();
-        spots.put("BTC", 1.0);      // Base for equivalency
+    public static Map<BasketTO, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+        Map<BasketTO, Map<String, BigDecimal>> equivalent = new HashMap<>();
+        spots.put("BTC", new BigDecimal(1.0, mathContext));      // Base for equivalency
         for (PositionTO p : positions) {
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
-            BigDecimal price = new BigDecimal(spots.get(p.getCurrency()), mathContext);
+            BigDecimal price = spots.get(p.getCurrency());
             BigDecimal eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
 
             equivalent.putIfAbsent(p.getBasket(), new HashMap<>());
-            equivalent.get(p.getBasket()).put(p.getCurrency(), eq.doubleValue());
+            equivalent.get(p.getBasket()).put(p.getCurrency(), eq.setScale(10, RoundingMode.HALF_UP));
         }
         return equivalent;
     }
@@ -147,7 +153,7 @@ public class AssetManagerTasks {
         return positions;
     }
 
-    private static Map<String, Double> getSpots() {
+    private static Map<String, BigDecimal> getSpots() {
         // TODO: filtrar spots frente a BTC y usar como clave la altcoin
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/spot/")).build();
         HttpResponse<String> response = null;
@@ -169,15 +175,15 @@ public class AssetManagerTasks {
      * @param spots list to be transformed
      * @return Map with basic info from the list
      */
-    public static Map<String, Double> spotsAsMap(List<SpotTO> spots) {
-        Map<String, Double> res = new HashMap<>();
+    public static Map<String, BigDecimal> spotsAsMap(List<SpotTO> spots) {
+        Map<String, BigDecimal> res = new HashMap<>();
         if (spots == null) {
             return res;
         }
         spots.forEach(s -> {
-            res.putIfAbsent(s.getInstrument().replace("BTC", ""), s.getMid());
+            res.putIfAbsent(s.getInstrument().replace("BTC", ""), new BigDecimal(s.getMid(), mathContext));
         });
-        res.putIfAbsent("BTC", 1.0);
+        res.putIfAbsent("BTC", new BigDecimal(1.0, mathContext));
         return res;
     }
 
