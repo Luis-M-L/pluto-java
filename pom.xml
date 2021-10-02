@@ -11,7 +11,8 @@
         <module>instruments</module>
         <module>batches</module>
         <module>baskets</module>
-    </modules>
+		<module>positions</module>
+	</modules>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>

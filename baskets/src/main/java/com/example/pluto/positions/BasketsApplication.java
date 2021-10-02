@@ -1,4 +1,4 @@
-package com.example.pluto.baskets;
+package com.example.pluto.positions;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

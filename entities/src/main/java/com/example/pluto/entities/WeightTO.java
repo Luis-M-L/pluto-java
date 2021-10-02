@@ -12,7 +12,7 @@ public class WeightTO {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String instrument;
+    private String currency;
     private Double weight;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -23,9 +23,9 @@ public class WeightTO {
     public WeightTO() {
     }
 
-    public WeightTO(Long id, String instrument, Double weight, BasketTO basket) {
+    public WeightTO(Long id, String currency, Double weight, BasketTO basket) {
         this.id = id;
-        this.instrument = instrument;
+        this.currency = currency;
         this.weight = weight;
         this.basket = basket;
     }
@@ -38,12 +38,12 @@ public class WeightTO {
         this.id = id;
     }
 
-    public String getInstrument() {
-        return instrument;
+    public String getCurrency() {
+        return currency;
     }
 
-    public void setInstrument(String instrument) {
-        this.instrument = instrument;
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
     public Double getWeight() {
@@ -66,9 +66,25 @@ public class WeightTO {
     public String toString() {
         return "WeightsTO{" +
                 "id=" + id +
-                ", instrument=" + instrument +
+                ", instrument=" + currency +
                 ", weight=" + weight +
-                ", basket=" + basket +
+                ", basket=" + basket.getLabel() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object comparing){
+        if (comparing.getClass() != WeightTO.class) {
+            return false;
+        }
+        WeightTO wComparing = (WeightTO) comparing;
+        return this.equals(wComparing);
+    }
+
+    public boolean equals(WeightTO comp) {
+        if (comp.getCurrency() == null || comp.getWeight() == null || this.getCurrency() == null || this.getWeight() == null) {
+            return false;
+        }
+        return comp.getCurrency().equals(this.getCurrency()) && comp.getWeight().equals(this.getWeight());
     }
 }

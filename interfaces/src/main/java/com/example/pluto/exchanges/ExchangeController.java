@@ -1,14 +1,10 @@
 package com.example.pluto.exchanges;
 
 import com.example.pluto.entities.BookTO;
-import com.example.pluto.entities.SnapshotTO;
 import com.example.pluto.entities.SpotTO;
 import org.springframework.web.bind.annotation.*;
 
 public interface ExchangeController {
-
-    @GetMapping(value = "snapshot/{instrument}")
-    SnapshotTO getSnapshot(@PathVariable String instrument, @RequestParam(required = false) String time);
 
     @GetMapping(value = "spot/{instrument}")
     SpotTO getSpot(@PathVariable String instrument, @RequestParam(required = false) String time);

@@ -15,6 +15,7 @@ public class SpotTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    // TODO: convertir a objeto InstrumentTO
     private String instrument;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
@@ -31,7 +32,7 @@ public class SpotTO {
         this.timestamp = timestamp;
         this.bid = bid;
         this.offer = offer;
-        this.mid = (bid != null && offer != null) ? bid + offer / 2 : null;
+        this.mid = (bid != null && offer != null) ? (bid + offer) / 2 : null;
         this.volume = volume;
     }
 
