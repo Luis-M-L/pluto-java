@@ -1,11 +1,11 @@
-package services;
+package com.example.pluto.ordenanza.services;
 
 import com.example.pluto.entities.InstrumentTO;
 import com.example.pluto.entities.SpotTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import repositories.InstrumentRepository;
-import repositories.SpotRepository;
+import com.example.pluto.ordenanza.repositories.InstrumentRepository;
+import com.example.pluto.ordenanza.repositories.SpotRepository;
 
 import java.util.ArrayList;
 import java.util.List;

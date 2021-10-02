@@ -21,13 +21,6 @@ services:
     ports:
       - "48558:8080"
 
-  instruments:
-    build:
-      context: ./instruments/
-      dockerfile: Dockerfile
-    ports:
-    - "48557:8080"
-
   batches:
     build:
       context: ./batches/

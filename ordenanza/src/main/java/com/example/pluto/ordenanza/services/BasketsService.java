@@ -1,12 +1,12 @@
-package services;
+package com.example.pluto.ordenanza.services;
 
 import com.example.pluto.entities.BasketTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import repositories.BasketRepository;
-import repositories.WeightsRepository;
+import com.example.pluto.ordenanza.repositories.BasketRepository;
+import com.example.pluto.ordenanza.repositories.WeightsRepository;
 
 import java.util.ArrayList;
 import java.util.List;
