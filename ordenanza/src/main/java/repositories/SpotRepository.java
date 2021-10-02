@@ -1,4 +1,4 @@
-package com.example.pluto.instruments.repositories;
+package repositories;
 
 import com.example.pluto.entities.SpotTO;
 import org.springframework.data.repository.CrudRepository;

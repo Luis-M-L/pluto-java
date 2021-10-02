@@ -1,11 +1,11 @@
-package com.example.pluto.instruments;
+package services;
 
 import com.example.pluto.entities.InstrumentTO;
 import com.example.pluto.entities.SpotTO;
-import com.example.pluto.instruments.repositories.InstrumentRepository;
-import com.example.pluto.instruments.repositories.SpotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import repositories.InstrumentRepository;
+import repositories.SpotRepository;
 
 import java.util.ArrayList;
 import java.util.List;
