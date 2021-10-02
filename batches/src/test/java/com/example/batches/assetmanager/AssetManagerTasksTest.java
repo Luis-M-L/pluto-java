@@ -68,7 +68,7 @@ public class AssetManagerTasksTest {
     }
 
     @Test
-    public void testAsMap() {
+    public void testSpotsAsMap() {
         AssetManagerTasks amt = new AssetManagerTasks();
         Map<String, BigDecimal> actual = amt.spotsAsMap(spotsList);
 
@@ -159,7 +159,8 @@ public class AssetManagerTasksTest {
     }
 
     private static void fillSpotsList() {
-        spotsList = new ArrayList<>(5);
+        spotsList = new ArrayList<>(6);
+        spotsList.add(new SpotTO("ETHIOT", Timestamp.valueOf("2021-10-02 18:35:00"), 0.000377, 0.000375, 200.0));
         spotsList.add(new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.12, 0.1, 10000.0));
         spotsList.add(new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.02, 0.018, 5000.0));
         spotsList.add(new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0051, 0.0049, 3000.0));

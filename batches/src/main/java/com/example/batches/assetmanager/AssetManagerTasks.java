@@ -6,6 +6,8 @@ import com.example.pluto.entities.SpotTO;
 import com.example.pluto.entities.WeightTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -15,9 +17,14 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AssetManagerTasks {
+
+    public static Logger LOG = LoggerFactory.getLogger(AssetManagerTasks.class);
 
     private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
@@ -28,7 +35,12 @@ public class AssetManagerTasks {
 
         double threshold = 0.05;
         Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
-        //List<TradeTO> trades = calculateTrades(positions, flows);
+        submitOrders(deviation);
+    }
+
+    private static void submitOrders(Map<PositionTO, BigDecimal> deviation) {
+        LOG.info("Submiting orders: " + null);
+        // TODO: call to trader service
     }
 
     private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
@@ -163,12 +175,11 @@ public class AssetManagerTasks {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        LOG.info("Got positions: " + positions);
         return positions;
     }
 
     private static Map<String, BigDecimal> getSpots() {
-        // TODO: filtrar spots frente a BTC y usar como clave la altcoin
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/spot/")).build();
         HttpResponse<String> response = null;
         List<SpotTO> spots = new ArrayList<>();
@@ -180,7 +191,7 @@ public class AssetManagerTasks {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        LOG.info("Got spots: " + spots);
         return AssetManagerTasks.spotsAsMap(spots);
     }
 
@@ -195,8 +206,11 @@ public class AssetManagerTasks {
             return res;
         }
         spots.forEach(s -> {
-            res.putIfAbsent(s.getInstrument().replace("BTC", ""), new BigDecimal(s.getMid(), mathContext));
+            if (s.getInstrument() != null && s.getInstrument().contains("BTC")){
+                res.putIfAbsent(s.getInstrument().replace("BTC", ""), new BigDecimal(s.getMid(), mathContext));
+            }
         });
+
         res.putIfAbsent("BTC", new BigDecimal(1.0, mathContext));
         return res;
     }
@@ -237,7 +251,7 @@ public class AssetManagerTasks {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        LOG.info("Got baskets: " + baskets);
         return baskets;
     }
 }
