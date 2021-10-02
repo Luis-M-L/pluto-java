@@ -1,5 +1,7 @@
-package com.example.pluto.bitfinex;
+package com.example.pluto.bitfinex.publicservices;
 
+import com.example.pluto.bitfinex.BitfinexAPIClient;
+import com.example.pluto.bitfinex.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.SpotRepository;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.exchanges.ExchangeService;
@@ -7,25 +9,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class BitfinexService implements ExchangeService {
 
     @Autowired
-    BitfinexAPIClient client;
+    public BitfinexAPIClient client;
 
     @Autowired
-    BitfinexParser parser;
+    public BitfinexParser parser;
 
     @Autowired
-    SpotRepository spotRepository;
+    public SpotRepository spotRepository;
 
     @Override
     public SpotTO getSpot(String instrument) {
         String spot = null;
         SpotTO spotTO = null;
         try {
-            spot = client.getSpot(instrument);
+            Map<String, String> params = new HashMap<>(1);
+            params.put("symbols", "t"+instrument);
+            spot = client.publicGet(Arrays.asList("v2", "tickers"), params);
             spotTO = parser.parseSpot(spot);
         } catch (IOException e) {
             e.printStackTrace();

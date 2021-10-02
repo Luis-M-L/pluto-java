@@ -7,19 +7,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class BitfinexAPIClient extends ExchangeAPIClient {
-    
-    public enum uris {
-        SPOT("https://api-pub.bitfinex.com/v2/tickers?symbols=t");
 
-        public final String url;
-
-        private uris(String label){
-            this.url = label;
-        }
-    }
+    public static String publicUrl = "https://api-pub.bitfinex.com";
+    public static String authUrl = "https://api.bitfinex.com";
 
     public BitfinexAPIClient() {
         super();
@@ -31,12 +26,28 @@ public class BitfinexAPIClient extends ExchangeAPIClient {
     }
 
     @Override
-    public String getSpot(String instrument) throws IOException, InterruptedException {
+    public String publicGet(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(URI.create(uris.SPOT.url + instrument))
+                                        .uri(URI.create(buildUri(publicUrl, subpath, params)))
                                         .build();
         HttpResponse<String> response = super.getClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
+    }
+
+    @Override
+    public String authPost(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
+    public String buildUri(String basepath, List<String> subpath, Map<String, String> params) {
+        StringBuilder sb = new StringBuilder(basepath);
+        subpath.forEach(s -> sb.append("/").append(s));
+        if (!params.keySet().isEmpty()) {
+            sb.append("?");
+            params.keySet().forEach(k -> sb.append(k).append("=").append(params.get(k)));
+        }
+        return sb.toString();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex;
 
+import com.example.pluto.bitfinex.publicservices.BitfinexService;
 import com.example.pluto.entities.BookTO;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.exchanges.ExchangeController;
