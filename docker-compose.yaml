@@ -21,6 +21,13 @@ services:
     ports:
       - "48558:8080"
 
+  ordenanza:
+    build:
+      context: ./ordenanza/
+      dockerfile: Dockerfile
+    ports:
+    - "48557:8080"
+
   batches:
     build:
       context: ./batches/
