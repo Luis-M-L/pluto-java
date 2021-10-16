@@ -8,10 +8,8 @@
 		<module>entities</module>
 		<module>interfaces</module>
 		<module>bitfinex</module>
-        <module>instruments</module>
-        <module>batches</module>
-        <module>baskets</module>
-		<module>positions</module>
+		<module>ordenanza</module>
+		<module>batches</module>
 	</modules>
 
 	<parent>

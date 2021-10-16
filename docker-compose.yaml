@@ -21,9 +21,9 @@ services:
     ports:
       - "48558:8080"
 
-  instruments:
+  ordenanza:
     build:
-      context: ./instruments/
+      context: ./ordenanza/
       dockerfile: Dockerfile
     ports:
     - "48557:8080"

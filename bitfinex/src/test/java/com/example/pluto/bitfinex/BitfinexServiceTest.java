@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex;
 
+import com.example.pluto.bitfinex.publicservices.BitfinexService;
 import com.example.pluto.entities.SpotTO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -11,6 +12,9 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BitfinexServiceTest {
 
@@ -34,7 +38,9 @@ public class BitfinexServiceTest {
     @Before
     public void setUp() throws IOException, InterruptedException {
         MockitoAnnotations.initMocks(this);
-       Mockito.when(service.client.getSpot(ticker))
+        Map<String, String> params = new HashMap<>(1);
+        params.put("symbols", "t"+ticker);
+       Mockito.when(service.client.publicGet(Arrays.asList("v2", "tickers"), params))
                .thenReturn(jsonBitfinex);
        Mockito.when(service.parser.parseSpot(jsonBitfinex)).thenReturn(expectedSpotTO);
     }

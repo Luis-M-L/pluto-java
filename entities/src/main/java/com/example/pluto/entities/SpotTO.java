@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "PLUTO_SPOTS")
+@NamedQuery(name = "getAllLast", query = "select s from SpotTO s where s.timestamp > :someago")
 public class SpotTO {
 
     @Id
