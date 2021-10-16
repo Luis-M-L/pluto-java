@@ -8,9 +8,15 @@ import com.example.pluto.exchanges.ExchangeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -24,6 +30,16 @@ public class BitfinexService implements ExchangeService {
 
     @Autowired
     public SpotRepository spotRepository;
+
+    @Autowired
+    public EntityManager em;
+
+    @Override
+    public List<SpotTO> getSpots() {
+        Timestamp someago = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS).minusSeconds(60));
+        Query q = em.createNamedQuery("getAllLast").setParameter("someago", someago);
+        return q.getResultList();
+    }
 
     @Override
     public SpotTO getSpot(String instrument) {

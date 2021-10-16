@@ -164,7 +164,7 @@ public class AssetManagerTasks {
     }
 
     private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://trader:8080/spot/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/positions/")).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {
@@ -180,7 +180,7 @@ public class AssetManagerTasks {
     }
 
     private static Map<String, BigDecimal> getSpots() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spot/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spots/")).build();
         HttpResponse<String> response = null;
         List<SpotTO> spots = new ArrayList<>();
         try {
