@@ -3,6 +3,7 @@ package com.example.pluto.exchanges;
 import com.example.pluto.entities.BookTO;
 import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.TradeTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,6 @@ public interface ExchangeController {
     List<PositionTO> getPositions();
 
     @PostMapping(value = "trade")
-    boolean trade();
+    boolean trade(@RequestBody List<TradeTO> defTrades);
 
 }

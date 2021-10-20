@@ -27,7 +27,7 @@ public abstract class ExchangeAPIClient {
 
     public abstract String publicGet(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException;
 
-    public abstract String authPost(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException;
+    public abstract String authPost(List<String> subpath, Map<String, String> params, String body) throws IOException, InterruptedException;
 
     public abstract String buildUri(String basepath, List<String> subpath, Map<String, String> params) throws IOException, InterruptedException;
 

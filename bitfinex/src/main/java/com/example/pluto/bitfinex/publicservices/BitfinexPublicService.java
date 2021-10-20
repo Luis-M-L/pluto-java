@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class BitfinexService implements ExchangeService {
+public class BitfinexPublicService implements ExchangeService {
 
     @Autowired
     public BitfinexAPIClient client;
