@@ -1,4 +1,4 @@
-package com.example.pluto.ordenanza.repositories;
+package com.example.pluto.bitfinex.repositories;
 
 import com.example.pluto.entities.PositionTO;
 import org.springframework.data.repository.CrudRepository;

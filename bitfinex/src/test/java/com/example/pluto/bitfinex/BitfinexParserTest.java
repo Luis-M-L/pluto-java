@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex;
 
+import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.entities.SpotTO;
 import org.junit.Assert;
 import org.junit.Before;

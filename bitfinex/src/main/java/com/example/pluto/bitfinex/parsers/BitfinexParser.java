@@ -1,9 +1,12 @@
-package com.example.pluto.bitfinex;
+package com.example.pluto.bitfinex.parsers;
 
 import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeParser;
 import org.apache.tomcat.util.json.JSONParser;
 import org.apache.tomcat.util.json.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -16,13 +19,17 @@ import java.util.List;
 @Component
 public class BitfinexParser implements ExchangeParser {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexParser.class);
+
+    private static final String INFO_MSG = "Parsing %: %";
+
     @Override
     public SpotTO parseSpot(String json) {
+        LOGGER.info(String.format(INFO_MSG, "spot", json));
         SpotTO spotTO = new SpotTO();
-        System.out.println("json " + json);
 
         // Si el JSON viene vacio no lo procesamos, devolvemos un objeto vacio
-        if(json.length() < 3){
+        if (json.length() < 3){
             return spotTO;
         }
 
@@ -41,6 +48,24 @@ public class BitfinexParser implements ExchangeParser {
         spotTO.setTimestamp(timestamp);
 
         return spotTO;
+    }
+
+    @Override
+    public TradeTO parseTrade(String json) {
+        LOGGER.info(String.format(INFO_MSG, "trade", json));
+        TradeTO tradeTO = new TradeTO();
+
+        if (json.length() < 3 ) {
+            return tradeTO;
+        }
+
+        JSONParser parser = new JSONParser(json);
+        try {
+            List<Object> lista = parser.list();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return tradeTO;
     }
 
     private Double numberToDouble(Object obj) {

@@ -1,4 +1,4 @@
-package com.example.pluto.bitfinex;
+package com.example.pluto.bitfinex.controllers;
 
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.publicservices.BitfinexPublicService;

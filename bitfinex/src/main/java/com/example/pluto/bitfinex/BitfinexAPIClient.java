@@ -3,6 +3,8 @@ package com.example.pluto.bitfinex;
 import com.example.pluto.exchanges.ExchangeAPIClient;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BitfinexAPIClient extends ExchangeAPIClient {
 
     public static String publicUrl = "https://api-pub.bitfinex.com";
@@ -31,24 +34,36 @@ public class BitfinexAPIClient extends ExchangeAPIClient {
     }
 
     @Override
-    public String publicGet(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException {
+    public HttpResponse publicGet(List<String> subpath, Map<String, String> params) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                                         .uri(URI.create(buildUri(publicUrl, subpath, params)))
                                         .build();
-        HttpResponse<String> response = super.getClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return send(request);
     }
 
     @Override
-    public String authPost(List<String> subpath, Map<String, String> params, String body) throws IOException, InterruptedException {
+    public HttpResponse authPost(List<String> subpath, Map<String, String> params, String body) {
         URI uri = URI.create(buildUri(authUrl, subpath, params));
         HttpRequest request = HttpRequest.newBuilder()
                                         .uri(uri)
                                         .headers(buildHeaders(uri.getRawPath(), body))
                                         .POST(HttpRequest.BodyPublishers.ofString(body))
                                         .build();
-        HttpResponse<String> response = super.getClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+
+        return send(request);
+    }
+
+    @Override
+    public HttpResponse send(HttpRequest request) {
+        HttpResponse<String> response = null;
+        try {
+            response = super.getClient().send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
     @Override
