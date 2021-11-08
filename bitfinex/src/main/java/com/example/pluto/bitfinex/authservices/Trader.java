@@ -12,6 +12,8 @@ import java.util.Map;
 
 public class Trader implements Runnable {
 
+    private static final String LIMIT = "EXCHANGE LIMIT";
+
     private BitfinexAPIClient client;
     private TradeTO trade;
     private Map<String, Double> tradesQueue;
@@ -34,11 +36,11 @@ public class Trader implements Runnable {
     }
 
     private String buildBody() {
-        return "{" +
-                "\"type\": \"EXCHANGE LIMIT\", " +
-                "\"symbol\": \"tIOTETH\", " +
-                "\"price\": \"0.00029\", " +
-                "\"amount\": \"-50\"" +
-                "}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ \"type\": \"").append(LIMIT).append("\", ")
+            .append("\"symbol\": \"t").append(trade.getPair()).append("\", ")
+            .append("\"price\": \"").append(trade.getPrice()).append("\", ")
+            .append("\"amount\": \"").append(trade.getAmount()).append("\"}");
+        return sb.toString();
     }
 }

@@ -22,6 +22,10 @@ public class BitfinexAuthService {
 
     private HashMap<String, Double> tradesQueue;
 
+    public BitfinexAuthService() {
+        tradesQueue = new HashMap<>();
+    }
+
     public boolean trade(List<TradeTO> defTrades) {
         defTrades.forEach( t -> {
             new Thread(new Trader(client, t, tradesQueue)).start();

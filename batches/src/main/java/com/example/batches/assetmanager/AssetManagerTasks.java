@@ -1,10 +1,8 @@
 package com.example.batches.assetmanager;
 
-import com.example.pluto.entities.BasketTO;
-import com.example.pluto.entities.PositionTO;
-import com.example.pluto.entities.SpotTO;
-import com.example.pluto.entities.WeightTO;
+import com.example.pluto.entities.*;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +33,21 @@ public class AssetManagerTasks {
 
         double threshold = 0.05;
         Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
-        submitOrders(deviation);
+        submitOrders(deviation, spots);
     }
 
-    private static void submitOrders(Map<PositionTO, BigDecimal> deviation) {
+    private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
         LOG.info("Submiting orders: " + null);
-        // TODO: call to trader service
+        List<TradeTO> trades = new ArrayList(deviation.size());
+        for (PositionTO k : deviation.keySet()) {
+            String pair = k.getCurrency() + "BTC";
+            BigDecimal price = spots.get(k.getCurrency());
+            Double amount = deviation.get(k).doubleValue();
+            trades.add(new TradeTO(pair, price, amount));
+        }
+        if (!trades.isEmpty()) {
+            callTrader(trades);
+        }
     }
 
     private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
@@ -52,7 +59,7 @@ public class AssetManagerTasks {
     }
 
     /**
-     * Filter deviations map to keep only the ones which must be corrected attending to the threshold
+     * Filters deviations map to keep only the ones which must be corrected attending to the threshold
      * @param deviations deviation values for each position
      * @param threshold this limits which positions must be corrected and which not to (x per one, 100% = 1)
      * @param basketEquivalentSums base to calculate deviation as percentage in the basket in order to compare to threshold
@@ -253,5 +260,22 @@ public class AssetManagerTasks {
         }
         LOG.info("Got baskets: " + baskets);
         return baskets;
+    }
+
+    private static void callTrader(List<TradeTO> trades) {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/trade/")).build();
+        HttpResponse<String> response = null;
+        List<String> res = new ArrayList<>(32);
+        try {
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            res = new ObjectMapper().readValue(response.body(), new TypeReference<List<String>>() {});
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LOG.info("Submited trades: " + trades);
     }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Objects;
@@ -23,15 +24,17 @@ public class TradeTO {
     private Timestamp effectiveTimestamp;
 
     private String pair;
+    private BigDecimal price;
     private Double amount;
     private String status;
 
     public TradeTO() {
     }
 
-    public TradeTO(String pair, Double amount) {
+    public TradeTO(String pair, BigDecimal price, Double amount) {
         this.issuedTimestamp = Timestamp.valueOf(Instant.now().toString());
         this.pair = pair;
+        this.price = price;
         this.amount = amount;
     }
 
@@ -74,6 +77,14 @@ public class TradeTO {
         this.pair = pair;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
     public Double getAmount() {
         return amount;
     }
@@ -95,20 +106,24 @@ public class TradeTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TradeTO tradeTO = (TradeTO) o;
-        return pair.equals(tradeTO.pair) && amount.equals(tradeTO.amount);
+        return pair.equals(tradeTO.pair) && price.equals(tradeTO.price) && amount.equals(tradeTO.amount) && Objects.equals(status, tradeTO.status);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pair, amount);
+        return Objects.hash(pair, price, amount, status);
     }
 
     @Override
     public String toString() {
         return "TradeTO{" +
-                "timestamp=" + issuedTimestamp +
+                "id=" + id +
+                ", issuedTimestamp=" + issuedTimestamp +
+                ", effectiveTimestamp=" + effectiveTimestamp +
                 ", pair='" + pair + '\'' +
+                ", price=" + price +
                 ", amount=" + amount +
+                ", status='" + status + '\'' +
                 '}';
     }
 }
