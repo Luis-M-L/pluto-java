@@ -1,6 +1,7 @@
 package com.example.pluto.bitfinex.authservices;
 
 import com.example.pluto.bitfinex.BitfinexAPIClient;
+import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,9 @@ public class BitfinexAuthService {
     @Autowired
     public BitfinexAPIClient client;
 
+    @Autowired
+    public BitfinexParser parser;
+
     private HashMap<String, Double> tradesQueue;
 
     public BitfinexAuthService() {
@@ -28,7 +32,7 @@ public class BitfinexAuthService {
 
     public boolean trade(List<TradeTO> defTrades) {
         defTrades.forEach( t -> {
-            new Thread(new Trader(client, t, tradesQueue)).start();
+            new Thread(new Trader(client, parser, t, tradesQueue)).start();
         });
         return false;
     }

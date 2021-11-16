@@ -21,7 +21,7 @@ public class BitfinexParser implements ExchangeParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexParser.class);
 
-    private static final String INFO_MSG = "Parsing %: %";
+    private static final String INFO_MSG = "Parsing % : %";
 
     @Override
     public SpotTO parseSpot(String json) {
@@ -52,19 +52,9 @@ public class BitfinexParser implements ExchangeParser {
 
     @Override
     public TradeTO parseTrade(String json) {
-        LOGGER.info(String.format(INFO_MSG, "trade", json));
+        //LOGGER.info(String.format(INFO_MSG, "trade", json));
         TradeTO tradeTO = new TradeTO();
 
-        if (json.length() < 3 ) {
-            return tradeTO;
-        }
-
-        JSONParser parser = new JSONParser(json);
-        try {
-            List<Object> lista = parser.list();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
         return tradeTO;
     }
 

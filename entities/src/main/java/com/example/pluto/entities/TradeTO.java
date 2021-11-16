@@ -15,7 +15,9 @@ import java.util.Objects;
 public class TradeTO {
 
     @Id
-    Long id;
+    public Long id;
+
+    private Long exchangeId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp issuedTimestamp;
@@ -51,6 +53,14 @@ public class TradeTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getExchangeId() {
+        return exchangeId;
+    }
+
+    public void setExchangeId(Long exchangeId) {
+        this.exchangeId = exchangeId;
     }
 
     public Timestamp getIssuedTimestamp() {
