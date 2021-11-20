@@ -38,7 +38,7 @@ public class Trader implements Runnable {
         if (response.statusCode() == 200) {
             tradesQueue.remove(trade);
             if (response.body() != null) {
-                TradeTO body = parser.parseTrade(response.body().toString());
+                TradeTO body = parser.parseTrade(trade, response.body().toString());
                 tradeRepository.save(body);
             }
         }

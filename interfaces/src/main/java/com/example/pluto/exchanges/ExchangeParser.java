@@ -7,6 +7,5 @@ public interface ExchangeParser {
 
     SpotTO parseSpot(String json);
 
-    TradeTO parseTrade(String json);
-
+    TradeTO parseTrade(TradeTO tradeTO, String json);
 }

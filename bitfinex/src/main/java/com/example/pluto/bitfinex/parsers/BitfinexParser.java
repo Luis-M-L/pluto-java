@@ -3,70 +3,72 @@ package com.example.pluto.bitfinex.parsers;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeParser;
-import org.apache.tomcat.util.json.JSONParser;
-import org.apache.tomcat.util.json.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.stream.JsonParser;
+import java.io.StringReader;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @Component
 public class BitfinexParser implements ExchangeParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexParser.class);
 
-    private static final String INFO_MSG = "Parsing % : %";
+    private static final String INFO_MSG = "Parsing %s : ";
+
+    private JsonArray getJsonArray(String json) {
+        JsonParser parser = Json.createParser(new StringReader(json));
+        parser.next();
+        return parser.getArray();
+    }
 
     @Override
     public SpotTO parseSpot(String json) {
         LOGGER.info(String.format(INFO_MSG, "spot", json));
-        SpotTO spotTO = new SpotTO();
+        SpotTO spot = new SpotTO();
 
-        // Si el JSON viene vacio no lo procesamos, devolvemos un objeto vacio
-        if (json.length() < 3){
-            return spotTO;
+        // si el json viene vacío no lo procesamos
+        if (json.length() < 3) {
+            return spot;
         }
 
-        JSONParser parser = new JSONParser(json);
-        try {
-            List<Object> jsonArray = (List<Object>) parser.list().get(0);
-            spotTO.setInstrument(((String) jsonArray.get(0)).substring(1));
-            spotTO.setBid(numberToDouble(jsonArray.get(1)));
-            spotTO.setOffer(numberToDouble(jsonArray.get(3)));
-            spotTO.setVolume(numberToDouble(jsonArray.get(8)));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
+        JsonArray array = getJsonArray(json).getJsonArray(0);
+        spot.setInstrument(array.getString(0).substring(1));
+        spot.setBid(array.getJsonNumber(1).doubleValue());
+        spot.setOffer(array.getJsonNumber(3).doubleValue());
+        spot.setVolume(array.getJsonNumber(8).doubleValue());
         Timestamp timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-        spotTO.setTimestamp(timestamp);
+        spot.setTimestamp(timestamp);
 
-        return spotTO;
+        return spot;
     }
 
     @Override
-    public TradeTO parseTrade(String json) {
-        //LOGGER.info(String.format(INFO_MSG, "trade", json));
-        TradeTO tradeTO = new TradeTO();
+    public TradeTO parseTrade(TradeTO tradeTO, String json) {
+        LOGGER.info(String.format(INFO_MSG, "trade"));
+        LOGGER.info(json);
+
+        // si el json viene vacio no lo procesamos
+        if (json.length() < 3) {
+            return tradeTO;
+        }
+
+        JsonArray array = getJsonArray(json);
+        JsonArray innerArray = array.getJsonArray(4).getJsonArray(0);
+        tradeTO.setExchangeId(innerArray.getJsonNumber(0).longValue());
+        tradeTO.setEffectiveTimestamp(new Timestamp(innerArray.getJsonNumber(4).longValue()));
+        tradeTO.setPair(innerArray.getString(3).substring(1));
+        tradeTO.setPrice(innerArray.getJsonNumber(16).bigDecimalValue());
+        tradeTO.setAmount(innerArray.getJsonNumber(6).doubleValue());
+        tradeTO.setStatus(innerArray.getString(13));
 
         return tradeTO;
     }
 
-    private Double numberToDouble(Object obj) {
-        Double result;
-        if (obj instanceof BigInteger) {
-            result = ((BigInteger) obj).doubleValue();
-        } else if (obj instanceof BigDecimal){
-            result = ((BigDecimal) obj).doubleValue();
-        }else {
-            result = (Double) obj;
-        }
-        return result;
-    }
 }
