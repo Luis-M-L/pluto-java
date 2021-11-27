@@ -29,6 +29,6 @@ public interface ExchangeController {
     List<PositionTO> getPositions();
 
     @PostMapping(value = "trade")
-    boolean trade(@RequestBody List<TradeTO> defTrades);
+    void trade(@RequestBody List<TradeTO> defTrades);
 
 }

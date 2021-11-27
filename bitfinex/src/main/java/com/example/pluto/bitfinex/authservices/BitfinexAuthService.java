@@ -1,6 +1,7 @@
 package com.example.pluto.bitfinex.authservices;
 
 import com.example.pluto.bitfinex.BitfinexAPIClient;
+import com.example.pluto.bitfinex.authservices.concurrency.Trader;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
@@ -24,17 +25,23 @@ public class BitfinexAuthService {
     @Autowired
     public BitfinexParser parser;
 
-    private HashMap<String, Double> tradesQueue;
-
     public BitfinexAuthService() {
-        tradesQueue = new HashMap<>();
     }
 
-    public boolean trade(List<TradeTO> defTrades) {
+    public void trade(List<TradeTO> defTrades) {
         defTrades.forEach( t -> {
-            new Thread(new Trader(client, parser, t, tradesQueue)).start();
+            new Thread(new Trader(client, parser, t)).start();
         });
-        return false;
+    }
+
+    public List<TradeTO> getActiveOrders() {
+        HttpResponse response = client.authPost(Arrays.asList("v2", "auth", "r", "orders"), new HashMap<>(), "");
+        return parser.parseOrders(response.body().toString());
+    }
+
+    public List<TradeTO> getUnactiveOrders(String pair) {
+        HttpResponse response = client.authPost(Arrays.asList("v2", "auth", "r", "orders", "t"+pair, "hist"), new HashMap<>(), "{\"limit\": 5}");
+        return parser.parseOrders(response.body().toString());
     }
 
     public String getUserInfo() {
@@ -47,5 +54,4 @@ public class BitfinexAuthService {
         }
         return userInfo;
     }
-
 }

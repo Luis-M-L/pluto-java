@@ -43,13 +43,13 @@ public class BitfinexParserTest {
 
     @Test
     public void testParseTrade() {
-        TradeTO tradeTO = parser.parseTrade(new TradeTO(), jsonTrade);
+        TradeTO tradeTO = parser.convertOrderIntoTrade(new TradeTO(), jsonTrade);
 
         Assert.assertEquals(new Timestamp(1637093199924L), tradeTO.getEffectiveTimestamp());
         Assert.assertEquals(Long.valueOf(78617700474L), tradeTO.getExchangeId());
         Assert.assertEquals("IOTETH", tradeTO.getPair());
         Assert.assertEquals(BigDecimal.valueOf(32e-5), tradeTO.getPrice());
         Assert.assertEquals(Double.valueOf(-50.0), tradeTO.getAmount());
-        Assert.assertEquals("ACTIVE", tradeTO.getStatus());
+        Assert.assertEquals(TradeTO.ACTIVE_STATUS, tradeTO.getStatus());
     }
 }

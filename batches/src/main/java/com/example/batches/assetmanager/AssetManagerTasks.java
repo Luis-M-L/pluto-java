@@ -24,7 +24,7 @@ public class AssetManagerTasks {
 
     public static Logger LOG = LoggerFactory.getLogger(AssetManagerTasks.class);
 
-    private static MathContext mathContext = new MathContext(º);
+    private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static void rebalance() {
         List<BasketTO> baskets = getBaskets();

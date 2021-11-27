@@ -14,6 +14,10 @@ import java.util.Objects;
 @Table(name = "PLUTO_TRADES")
 public class TradeTO {
 
+    public static final String ACTIVE_STATUS = "ACTIVE";
+    public static final String CLOSED_STATUS = "CLOSED";
+    public static final String CANCELLED_STATUS = "CANCELLED";
+
     @Id
     public Long id;
 

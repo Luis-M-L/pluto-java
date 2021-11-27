@@ -14,6 +14,8 @@ import java.io.StringReader;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class BitfinexParser implements ExchangeParser {
@@ -50,25 +52,45 @@ public class BitfinexParser implements ExchangeParser {
     }
 
     @Override
-    public TradeTO parseTrade(TradeTO tradeTO, String json) {
-        LOGGER.info(String.format(INFO_MSG, "trade"));
-        LOGGER.info(json);
-
+    public TradeTO parseTrade(String json) {
         // si el json viene vacio no lo procesamos
         if (json.length() < 3) {
-            return tradeTO;
+            return new TradeTO();
         }
 
         JsonArray array = getJsonArray(json);
         JsonArray innerArray = array.getJsonArray(4).getJsonArray(0);
+        TradeTO tradeTO = mapArrayToTrade(innerArray);
+
+        return tradeTO;
+    }
+
+    private TradeTO mapArrayToTrade(JsonArray innerArray) {
+        TradeTO tradeTO = new TradeTO();
         tradeTO.setExchangeId(innerArray.getJsonNumber(0).longValue());
         tradeTO.setEffectiveTimestamp(new Timestamp(innerArray.getJsonNumber(4).longValue()));
         tradeTO.setPair(innerArray.getString(3).substring(1));
         tradeTO.setPrice(innerArray.getJsonNumber(16).bigDecimalValue());
         tradeTO.setAmount(innerArray.getJsonNumber(6).doubleValue());
         tradeTO.setStatus(innerArray.getString(13));
+        return tradeTO;
+    }
+
+    public TradeTO convertOrderIntoTrade(TradeTO tradeTO, String json) {
+        LOGGER.info(String.format(INFO_MSG, "trade"));
+        LOGGER.info(json);
+
+        TradeTO parsed = parseTrade(json);
+        parsed.setId(tradeTO.getId());
+        parsed.setIssuedTimestamp(tradeTO.getIssuedTimestamp());
 
         return tradeTO;
     }
 
+    public List<TradeTO> parseOrders(String json) {
+        List<TradeTO> trades = new ArrayList();
+        JsonArray array = getJsonArray(json);
+        array.iterator().forEachRemaining(t -> trades.add(mapArrayToTrade((JsonArray) t)));
+        return trades;
+    }
 }
