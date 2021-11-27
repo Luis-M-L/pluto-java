@@ -1,7 +1,5 @@
 package com.example.pluto.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import javax.persistence.*;
 
 @Entity
@@ -17,7 +15,6 @@ public class WeightTO {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "BASKET_ID")
-    @JsonBackReference
     private BasketTO basket;
 
     public WeightTO() {
@@ -68,7 +65,6 @@ public class WeightTO {
                 "id=" + id +
                 ", instrument=" + currency +
                 ", weight=" + weight +
-                ", basket=" + basket.getLabel() +
                 '}';
     }
 

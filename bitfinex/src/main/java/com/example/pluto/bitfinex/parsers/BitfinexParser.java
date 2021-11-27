@@ -22,7 +22,7 @@ public class BitfinexParser implements ExchangeParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexParser.class);
 
-    private static final String INFO_MSG = "Parsing %s : ";
+    private static final String INFO_MSG = "Parsing %s : %s";
 
     private JsonArray getJsonArray(String json) {
         JsonParser parser = Json.createParser(new StringReader(json));

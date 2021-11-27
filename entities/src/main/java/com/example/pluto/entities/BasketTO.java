@@ -1,7 +1,5 @@
 package com.example.pluto.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import javax.persistence.*;
 import java.util.List;
 
@@ -17,8 +15,7 @@ public class BasketTO {
     @Column(unique = true)
     private String label;
 
-    @OneToMany( mappedBy = "basket", fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @OneToMany( mappedBy = "basket", fetch = FetchType.EAGER)
     private List<WeightTO> weights;
 
     public BasketTO() {
@@ -60,8 +57,7 @@ public class BasketTO {
     public String toString() {
         return "InstrumentTO{" +
                 "id=" + id +
-                ", label='" + label + '\'' +
-                ", weights={" + weights.toString() + "}";
+                ", label='" + label + '\'' + "}";
     }
 
     public boolean equals(Object comparing) {
