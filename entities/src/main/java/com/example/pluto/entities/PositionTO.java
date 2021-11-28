@@ -70,4 +70,14 @@ public class PositionTO {
                 && this.getQuantity().equals(comp.getQuantity())
                 && this.getBasket().equals(comp.getBasket());
     }
+
+    @Override
+    public String toString() {
+        return "PositionTO{" +
+                "id=" + id +
+                ", basket=" + basket +
+                ", currency='" + currency + '\'' +
+                ", quantity=" + quantity +
+                '}';
+    }
 }

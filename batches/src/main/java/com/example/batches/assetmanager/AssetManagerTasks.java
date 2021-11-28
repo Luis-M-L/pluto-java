@@ -27,13 +27,13 @@ public class AssetManagerTasks {
     private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static void rebalance() {
-        //List<BasketTO> baskets = getBaskets();
-        //Map<String, BigDecimal> spots = getSpots();
+        List<BasketTO> baskets = getBaskets();
+        Map<String, BigDecimal> spots = getSpots();
         List<PositionTO> positions = getPositions();
 
         double threshold = 0.05;
-        //Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
-        //submitOrders(deviation, spots);
+        Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
+        submitOrders(deviation, spots);
     }
 
     private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
