@@ -27,13 +27,13 @@ public class AssetManagerTasks {
     private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static void rebalance() {
-        List<BasketTO> baskets = getBaskets();
-        Map<String, BigDecimal> spots = getSpots();
+        //List<BasketTO> baskets = getBaskets();
+        //Map<String, BigDecimal> spots = getSpots();
         List<PositionTO> positions = getPositions();
 
         double threshold = 0.05;
-        Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
-        submitOrders(deviation, spots);
+        //Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
+        //submitOrders(deviation, spots);
     }
 
     private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
@@ -171,7 +171,7 @@ public class AssetManagerTasks {
     }
 
     private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/positions/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/position/all")).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {

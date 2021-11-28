@@ -3,7 +3,6 @@ package com.example.pluto.bitfinex.controllers;
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.publicservices.BitfinexPublicService;
 import com.example.pluto.entities.BookTO;
-import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeController;
@@ -68,11 +67,6 @@ public class BitfinexController implements ExchangeController {
     @Override
     public BookTO getBook(String instrument, String time) {
         return null;
-    }
-
-    @Override
-    public List<PositionTO> getPositions() {
-        return new ArrayList<>();
     }
 
     @Override
