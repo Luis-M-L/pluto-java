@@ -8,6 +8,7 @@ import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Entity
@@ -38,7 +39,7 @@ public class TradeTO {
     }
 
     public TradeTO(String pair, BigDecimal price, Double amount) {
-        this.issuedTimestamp = Timestamp.valueOf(Instant.now().toString());
+        this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         this.pair = pair;
         this.price = price;
         this.amount = amount;

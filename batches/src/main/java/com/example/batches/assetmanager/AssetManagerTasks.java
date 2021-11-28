@@ -32,6 +32,7 @@ public class AssetManagerTasks {
         List<PositionTO> positions = getPositions();
 
         double threshold = 0.05;
+
         Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
         submitOrders(deviation, spots);
     }
@@ -42,7 +43,7 @@ public class AssetManagerTasks {
         for (PositionTO k : deviation.keySet()) {
             String pair = k.getCurrency() + "BTC";
             BigDecimal price = spots.get(k.getCurrency());
-            Double amount = deviation.get(k).doubleValue();
+            Double amount = - deviation.get(k).doubleValue();
             trades.add(new TradeTO(pair, price, amount));
         }
         if (!trades.isEmpty()) {
@@ -51,7 +52,7 @@ public class AssetManagerTasks {
     }
 
     private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
-        Map<BasketTO, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
+        Map<String, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
         Map<PositionTO, BigDecimal> deviations = getDeviations(positions, currentWishedPositions);
         Map<PositionTO, BigDecimal> rebalancing = filterDeviations(deviations, threshold, basketEquivalentSums, spots);
@@ -66,11 +67,11 @@ public class AssetManagerTasks {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return
      */
-    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<BasketTO, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
+    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<String, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
         Map<PositionTO, BigDecimal> filtered = new HashMap<>();
         for (PositionTO p : deviations.keySet()) {
             BigDecimal deviationBtcEq = deviations.get(p).multiply(spots.get(p.getCurrency()));
-            BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket()), mathContext);
+            BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket().getLabel()), mathContext);
             if (deviationOverSum.abs().doubleValue() > threshold) {
                 filtered.put(p, deviations.get(p));
             }
@@ -86,11 +87,11 @@ public class AssetManagerTasks {
      */
     public static Map<PositionTO, BigDecimal> getDeviations(List<PositionTO> positions, List<PositionTO> currentWishedPositions) {
         Map<PositionTO, BigDecimal> deviations = new HashMap<>();
-        Map<BasketTO, Map<String, Double>> pos = positionsAsMap(positions);
-        Map<BasketTO, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
+        Map<String, Map<String, Double>> pos = positionsAsMap(positions);
+        Map<String, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
         positions.forEach(p -> {
-            BigDecimal minuendo = new BigDecimal(pos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
-            BigDecimal sustraendo = new BigDecimal(currPos.get(p.getBasket()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal minuendo = new BigDecimal(pos.get(p.getBasket().getLabel()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal sustraendo = new BigDecimal(currPos.get(p.getBasket().getLabel()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
             BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext).setScale(10, RoundingMode.HALF_UP);
             deviations.put(p, diferencia);
         });
@@ -104,11 +105,11 @@ public class AssetManagerTasks {
      * @param sums sumatory in base currency (BTC) of all the positions in a basket
      * @return the positions that we should have
      */
-    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<BasketTO, BigDecimal> sums) {
+    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<String, BigDecimal> sums) {
         List<PositionTO> wished = new ArrayList<>();
 
         for (BasketTO basket : baskets) {
-            BigDecimal sum = sums.get(basket);
+            BigDecimal sum = sums.get(basket.getLabel());
 
             for (WeightTO weight : basket.getWeights()) {
                 BigDecimal price = spots.get(weight.getCurrency());
@@ -129,10 +130,10 @@ public class AssetManagerTasks {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return
      */
-    public static Map<BasketTO, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, BigDecimal> spots) {
-        Map<BasketTO, Map<String, BigDecimal>> equivalent = turnPositionsIntoEquivalent(positions, spots);
+    public static Map<String, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+        Map<String, Map<String, BigDecimal>> equivalent = turnPositionsIntoEquivalent(positions, spots);
 
-        Map<BasketTO, BigDecimal> eq = new HashMap<>(equivalent.size());
+        Map<String, BigDecimal> eq = new HashMap<>(equivalent.size());
         equivalent.keySet().forEach(
                 k -> eq.put(k, getEquivalentSum(equivalent.get(k)).setScale(10, RoundingMode.HALF_UP))
         );
@@ -156,22 +157,22 @@ public class AssetManagerTasks {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return Map with values in base currency for each alt currency in each basket
      */
-    public static Map<BasketTO, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, BigDecimal> spots) {
-        Map<BasketTO, Map<String, BigDecimal>> equivalent = new HashMap<>();
+    public static Map<String, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+        Map<String, Map<String, BigDecimal>> equivalent = new HashMap<>();
         spots.put("BTC", new BigDecimal(1.0, mathContext));      // Base for equivalency
         for (PositionTO p : positions) {
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
             BigDecimal price = spots.get(p.getCurrency());
             BigDecimal eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
 
-            equivalent.putIfAbsent(p.getBasket(), new HashMap<>());
-            equivalent.get(p.getBasket()).put(p.getCurrency(), eq.setScale(10, RoundingMode.HALF_UP));
+            equivalent.putIfAbsent(p.getBasket().getLabel(), new HashMap<>());
+            equivalent.get(p.getBasket().getLabel()).put(p.getCurrency(), eq.setScale(10, RoundingMode.HALF_UP));
         }
         return equivalent;
     }
 
     private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/position/all")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/position/all")).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {
@@ -187,7 +188,7 @@ public class AssetManagerTasks {
     }
 
     private static Map<String, BigDecimal> getSpots() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spots/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/spots/")).build();
         HttpResponse<String> response = null;
         List<SpotTO> spots = new ArrayList<>();
         try {
@@ -227,27 +228,27 @@ public class AssetManagerTasks {
      * @param positions list to be transformed
      * @return Map with basic info from the list
      */
-    public static Map<BasketTO, Map<String, Double>> positionsAsMap(List<PositionTO> positions) {
-        Map<BasketTO, Map<String, Double>> res = new HashMap<>();
+    public static Map<String, Map<String, Double>> positionsAsMap(List<PositionTO> positions) {
+        Map<String, Map<String, Double>> res = new HashMap<>();
         if (positions == null) {
             return res;
         }
         positions.forEach(p -> {
             String currency = p.getCurrency();
             Double quantity = p.getQuantity();
-            if (res.containsKey(p.getBasket())) {
-                res.get(p.getBasket()).put(currency, quantity);
+            if (res.containsKey(p.getBasket().getLabel())) {
+                res.get(p.getBasket().getLabel()).put(currency, quantity);
             } else {
                 Map<String, Double> value = new HashMap<>();
                 value.put(currency, quantity);
-                res.put(p.getBasket(), value);
+                res.put(p.getBasket().getLabel(), value);
             }
         });
         return res;
     }
 
     private static List<BasketTO> getBaskets() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://ordenanza:8080/basket/all/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48557/basket/all/")).build();
         HttpResponse<String> response = null;
         List<BasketTO> baskets = new ArrayList<>();
         try {
@@ -263,7 +264,7 @@ public class AssetManagerTasks {
     }
 
     private static void callTrader(List<TradeTO> trades) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/trade/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/trade/")).build();
         HttpResponse<String> response = null;
         List<String> res = new ArrayList<>(32);
         try {
