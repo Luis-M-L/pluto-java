@@ -10,7 +10,7 @@ public class PositionTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "BASKET_ID")
     private BasketTO basket;
 
@@ -66,5 +66,15 @@ public class PositionTO {
         return this.getCurrency().equals(comp.getCurrency())
                 && this.getQuantity().equals(comp.getQuantity())
                 && this.getBasket().equals(comp.getBasket());
+    }
+
+    @Override
+    public String toString() {
+        return "PositionTO{" +
+                "id=" + id +
+                ", basket=" + basket +
+                ", currency='" + currency + '\'' +
+                ", quantity=" + quantity +
+                '}';
     }
 }

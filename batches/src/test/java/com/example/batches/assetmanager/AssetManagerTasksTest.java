@@ -22,8 +22,8 @@ public class AssetManagerTasksTest {
     public static List<SpotTO> spotsList;
     public static Map<String, BigDecimal> spotsMap;
     public static List<PositionTO> positions;
-    public static Map<BasketTO, Map<String, BigDecimal>> equivalent;
-    public static Map<BasketTO, BigDecimal> equivalentSum;
+    public static Map<String, Map<String, BigDecimal>> equivalent;
+    public static Map<String, BigDecimal> equivalentSum;
     public static List<BasketTO> baskets;
     public static List<PositionTO> wished;
     public static Map<PositionTO, BigDecimal> deviations;
@@ -54,7 +54,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testTurnPositionsIntoEquivalent() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<BasketTO, Map<String, BigDecimal>> actual = amt.turnPositionsIntoEquivalent(positions, spotsMap);
+        Map<String, Map<String, BigDecimal>> actual = amt.turnPositionsIntoEquivalent(positions, spotsMap);
 
         assertEquals(equivalent, actual);
     }
@@ -62,7 +62,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testGetEquivalentSumByBasket(){
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<BasketTO, BigDecimal> actual = amt.getEquivalentSumByBasket(positions, spotsMap);
+        Map<String, BigDecimal> actual = amt.getEquivalentSumByBasket(positions, spotsMap);
 
         assertEquals(equivalentSum, actual);
     }
@@ -99,22 +99,22 @@ public class AssetManagerTasksTest {
 
     private static void fillEquivalentSum(BasketTO basketBasica, BasketTO basketGrowth) {
         equivalentSum = new HashMap<>(2);
-        equivalentSum.put(basketBasica, new BigDecimal(0.511165, mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalentSum.put(basketGrowth, new BigDecimal(1.000055, mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalentSum.put(basketBasica.getLabel(), new BigDecimal(0.511165, mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalentSum.put(basketGrowth.getLabel(), new BigDecimal(1.000055, mathContext).setScale(10, RoundingMode.HALF_UP));
     }
 
     private static void fillEquivalent(BasketTO basketBasica, BasketTO basketGrowth) {
         equivalent = new HashMap<>(2);
-        equivalent.put(basketBasica, new HashMap<>());
-        equivalent.get(basketBasica).put("BTC", new BigDecimal(0.5      , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketBasica).put("ETH", new BigDecimal(0.011    , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketBasica).put("XMR", new BigDecimal(0.000165 , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.put(basketGrowth, new HashMap<>());
-        equivalent.get(basketGrowth).put("BTC", new BigDecimal(0.15     , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketGrowth).put("ADA", new BigDecimal(0.29988  , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketGrowth).put("XMR", new BigDecimal(0.25     , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketGrowth).put("ETH", new BigDecimal(0.2002   , mathContext).setScale(10, RoundingMode.HALF_UP));
-        equivalent.get(basketGrowth).put("IOT", new BigDecimal(0.099975 , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.put(basketBasica.getLabel(), new HashMap<>());
+        equivalent.get(basketBasica.getLabel()).put("BTC", new BigDecimal(0.5      , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketBasica.getLabel()).put("ETH", new BigDecimal(0.011    , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketBasica.getLabel()).put("XMR", new BigDecimal(0.000165 , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.put(basketGrowth.getLabel(), new HashMap<>());
+        equivalent.get(basketGrowth.getLabel()).put("BTC", new BigDecimal(0.15     , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth.getLabel()).put("ADA", new BigDecimal(0.29988  , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth.getLabel()).put("XMR", new BigDecimal(0.25     , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth.getLabel()).put("ETH", new BigDecimal(0.2002   , mathContext).setScale(10, RoundingMode.HALF_UP));
+        equivalent.get(basketGrowth.getLabel()).put("IOT", new BigDecimal(0.099975 , mathContext).setScale(10, RoundingMode.HALF_UP));
     }
 
     private static BasketTO fillPositionsGrowth() {

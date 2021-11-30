@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "PLUTO_BASKETS")
@@ -17,7 +18,7 @@ public class BasketTO {
     @Column(unique = true)
     private String label;
 
-    @OneToMany( mappedBy = "basket", fetch = FetchType.LAZY)
+    @OneToMany( mappedBy = "basket", fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<WeightTO> weights;
 
@@ -61,18 +62,19 @@ public class BasketTO {
         return "InstrumentTO{" +
                 "id=" + id +
                 ", label='" + label + '\'' +
-                ", weights={" + weights.toString() + "}";
+                " weights='" + weights + "'}";
     }
 
-    public boolean equals(Object comparing) {
-        if (comparing.getClass() != BasketTO.class) {
-            return false;
-        }
-        BasketTO comp = (BasketTO) comparing;
-        return this.equals(comp);
+    @Override
+    public int hashCode() {
+        return Objects.hash(label, weights);
     }
 
-    public boolean equals(BasketTO comp) {
-        return comp.getWeights().equals(this.getWeights());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BasketTO basket = (BasketTO) o;
+        return label.equals(basket.label) && weights.equals(basket.weights);
     }
 }

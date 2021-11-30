@@ -1,8 +1,8 @@
 package com.example.pluto.exchanges;
 
 import com.example.pluto.entities.BookTO;
-import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.TradeTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +24,7 @@ public interface ExchangeController {
     @GetMapping(value = "book/{instrument}")
     BookTO getBook(@PathVariable String instrument, @RequestParam(required = false) String time);
 
-    @GetMapping(value = "positions")
-    List<PositionTO> getPositions();
-
     @PostMapping(value = "trade")
-    boolean trade();
+    void trade(@RequestBody List<TradeTO> defTrades);
 
 }

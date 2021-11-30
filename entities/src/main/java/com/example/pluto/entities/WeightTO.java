@@ -68,7 +68,6 @@ public class WeightTO {
                 "id=" + id +
                 ", instrument=" + currency +
                 ", weight=" + weight +
-                ", basket=" + basket.getLabel() +
                 '}';
     }
 
