@@ -15,10 +15,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AssetManagerTasks {
 
@@ -172,7 +169,7 @@ public class AssetManagerTasks {
     }
 
     private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/position/all")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/position/all")).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {
@@ -188,7 +185,7 @@ public class AssetManagerTasks {
     }
 
     private static Map<String, BigDecimal> getSpots() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/spots/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spots/")).build();
         HttpResponse<String> response = null;
         List<SpotTO> spots = new ArrayList<>();
         try {
@@ -248,7 +245,7 @@ public class AssetManagerTasks {
     }
 
     private static List<BasketTO> getBaskets() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48557/basket/all/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://ordenanza:8080/basket/all/")).build();
         HttpResponse<String> response = null;
         List<BasketTO> baskets = new ArrayList<>();
         try {
@@ -264,12 +261,15 @@ public class AssetManagerTasks {
     }
 
     private static void callTrader(List<TradeTO> trades) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/trade/")).build();
-        HttpResponse<String> response = null;
-        List<String> res = new ArrayList<>(32);
+        ObjectMapper mapper = new ObjectMapper();
         try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/trade/"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
+                    .build();
+            HttpResponse<String> response = null;
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            res = new ObjectMapper().readValue(response.body(), new TypeReference<List<String>>() {});
+            List<String> res = mapper.readValue(response.body(), new TypeReference<List<String>>() {});
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
