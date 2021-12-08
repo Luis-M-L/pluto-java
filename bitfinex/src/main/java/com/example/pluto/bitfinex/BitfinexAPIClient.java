@@ -7,6 +7,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -21,11 +22,14 @@ import java.util.Map;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BitfinexAPIClient extends ExchangeAPIClient {
 
+    private String vault;
+
     public static String publicUrl = "https://api-pub.bitfinex.com";
     public static String authUrl = "https://api.bitfinex.com";
 
     public BitfinexAPIClient() {
         super();
+        vault = System.getenv("API_KEYSTORE");
     }
 
     @Override
@@ -111,11 +115,11 @@ public class BitfinexAPIClient extends ExchangeAPIClient {
     }
 
     private String getKey(boolean isPublic) throws URISyntaxException, IOException {
-        String keyPath;
+        String keyPath = System.getenv("API_KEYSTORE");
         if (isPublic){
-            keyPath = "../../k";
+            keyPath = vault + File.separator + "k";
         } else {
-            keyPath = "../../sk";
+            keyPath = vault + File.separator + "sk";
         }
         return new String(Files.readAllBytes(Paths.get(keyPath)));
     }

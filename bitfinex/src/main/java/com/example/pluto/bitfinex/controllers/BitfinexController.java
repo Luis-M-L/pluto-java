@@ -70,8 +70,10 @@ public class BitfinexController implements ExchangeController {
     }
 
     @Override
-    public void trade(List<TradeTO> defTrades) {
+    public List<TradeTO> trade(List<TradeTO> defTrades) {
+        LOG.info("Received trades: " + defTrades);
         bitfinexAuthService.trade(defTrades);
+        return defTrades;
     }
 
     @GetMapping(value = "user")

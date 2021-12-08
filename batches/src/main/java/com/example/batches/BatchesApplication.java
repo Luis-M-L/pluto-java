@@ -1,6 +1,7 @@
 package com.example.batches;
 
 import com.example.batches.assetmanager.AssetManagerTasks;
+import com.example.batches.datacrawler.DatacrawlerTasks;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -16,7 +17,7 @@ public class BatchesApplication {
 
 	@Scheduled(fixedRate = 60000)
 	public void crawl() {
-		//DatacrawlerTasks.registerSpots();
+		DatacrawlerTasks.registerSpots();
 	}
 
 	@Scheduled(fixedRate = 60000)

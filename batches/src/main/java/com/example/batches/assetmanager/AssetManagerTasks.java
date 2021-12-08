@@ -35,7 +35,7 @@ public class AssetManagerTasks {
     }
 
     private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
-        LOG.info("Submiting orders: " + null);
+        LOG.info("Submiting orders");
         List<TradeTO> trades = new ArrayList(deviation.size());
         for (PositionTO k : deviation.keySet()) {
             String pair = k.getCurrency() + "BTC";

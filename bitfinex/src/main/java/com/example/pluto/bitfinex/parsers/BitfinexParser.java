@@ -77,7 +77,7 @@ public class BitfinexParser implements ExchangeParser {
     }
 
     public TradeTO convertOrderIntoTrade(TradeTO tradeTO, String json) {
-        LOGGER.info(String.format(INFO_MSG, "trade"));
+        LOGGER.info(String.format(INFO_MSG, "trade", json));
         LOGGER.info(json);
 
         TradeTO parsed = parseTrade(json);

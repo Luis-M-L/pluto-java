@@ -25,6 +25,6 @@ public interface ExchangeController {
     BookTO getBook(@PathVariable String instrument, @RequestParam(required = false) String time);
 
     @PostMapping(value = "trade")
-    void trade(@RequestBody List<TradeTO> defTrades);
+    List<TradeTO> trade(@RequestBody List<TradeTO> defTrades);
 
 }
