@@ -10,7 +10,7 @@ services:
       MYSQL_USER: mozo
       MYSQL_PASSWORD: ozom
     volumes:
-    - D:\PublicHalf\Documents\Proyectos\Docker\Compartido\mariadb-pluto:/var/lib/mysql
+    - ${MARIADB_HOME}\mariadb-pluto:/var/lib/mysql
     ports:
     - "3306:3306"
 
@@ -20,6 +20,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "48558:8080"
+    volumes:
+    - ${API_KEYSTORE}:/ssh/
 
   ordenanza:
     build:
