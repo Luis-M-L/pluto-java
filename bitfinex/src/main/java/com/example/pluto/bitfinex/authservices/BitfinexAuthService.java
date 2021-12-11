@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BitfinexAuthService {
@@ -36,9 +37,12 @@ public class BitfinexAuthService {
     }
 
     public void trade(List<TradeTO> defTrades) {
-
+        List<TradeTO> activeOrders = authService.getActiveOrders();
         defTrades.forEach( t -> {
-            new Thread(new Trader(authService, client, parser, tradeRepository, t)).start();
+            List<TradeTO> filteredActiveOrders = activeOrders.stream().filter(ao -> ao.looksAlike(t)).collect(Collectors.toList());
+            if (filteredActiveOrders.isEmpty()){
+                new Thread(new Trader(authService, client, parser, tradeRepository, t)).start();
+            }
         });
     }
 
