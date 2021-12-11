@@ -118,8 +118,10 @@ public class TradeTO {
         this.status = status;
     }
 
-    public boolean looksAlike(TradeTO comp) {
-        return this.pair.equals(comp.getPair()) && this.price.equals(comp.getPrice()) && this.amount.equals(comp.getAmount());
+    public boolean looksAlike(TradeTO comp, double threshold) {
+        return this.pair.equals(comp.getPair())
+                && Math.abs(this.price.doubleValue() - comp.getPrice().doubleValue()) < threshold
+                && Math.abs(this.amount.doubleValue() - comp.getAmount().doubleValue()) < threshold;
     }
 
     @Override

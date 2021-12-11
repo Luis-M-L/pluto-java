@@ -15,7 +15,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AssetManagerTasks {
 
@@ -23,12 +26,10 @@ public class AssetManagerTasks {
 
     private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
-    public static void rebalance() {
+    public static void rebalance(double threshold) {
         List<BasketTO> baskets = getBaskets();
         Map<String, BigDecimal> spots = getSpots();
         List<PositionTO> positions = getPositions();
-
-        double threshold = 0.05;
 
         Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
         submitOrders(deviation, spots);

@@ -2,6 +2,7 @@ package com.example.batches;
 
 import com.example.batches.assetmanager.AssetManagerTasks;
 import com.example.batches.datacrawler.DatacrawlerTasks;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -10,6 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 @SpringBootApplication
 @EnableScheduling
 public class BatchesApplication {
+
+	@Value("${acting.threshold}")
+	public double threshold;
 
 	public static void main(String[] args) {
 		SpringApplication.run(BatchesApplication.class, args);
@@ -22,6 +26,6 @@ public class BatchesApplication {
 
 	@Scheduled(fixedRate = 60000)
 	public void checkPositions() {
-		AssetManagerTasks.rebalance();
+		AssetManagerTasks.rebalance(threshold);
 	}
 }

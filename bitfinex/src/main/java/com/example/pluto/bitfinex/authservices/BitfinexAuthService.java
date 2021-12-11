@@ -8,6 +8,7 @@ import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
@@ -18,6 +19,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class BitfinexAuthService {
+
+    @Value("${acting.threshold}")
+    private double threshold;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexAuthService.class);
 
@@ -39,7 +43,7 @@ public class BitfinexAuthService {
     public void trade(List<TradeTO> defTrades) {
         List<TradeTO> activeOrders = authService.getActiveOrders();
         defTrades.forEach( t -> {
-            List<TradeTO> filteredActiveOrders = activeOrders.stream().filter(ao -> ao.looksAlike(t)).collect(Collectors.toList());
+            List<TradeTO> filteredActiveOrders = activeOrders.stream().filter(ao -> ao.looksAlike(t, threshold)).collect(Collectors.toList());
             if (filteredActiveOrders.isEmpty()){
                 new Thread(new Trader(authService, client, parser, tradeRepository, t)).start();
             }
