@@ -7,7 +7,6 @@ import com.example.pluto.bitfinex.repositories.TradeRepository;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.net.http.HttpResponse;
 import java.util.Arrays;
@@ -20,9 +19,6 @@ public class Trader implements Runnable {
     private Logger LOG = LoggerFactory.getLogger(Trader.class);
 
     private static final String EXCHANGE_LIMIT = "EXCHANGE LIMIT";
-
-    @Value("${acting.threshold}")
-    private double threshold;
 
     private BitfinexAPIClient client;
     private TradeTO trade;
@@ -71,7 +67,7 @@ public class Trader implements Runnable {
         }
 
         List<TradeTO> unactive = service.getUnactiveOrders(trade.getPair());
-        boolean isTradeUnactive = unactive.stream().filter(t -> t.looksAlike(trade, threshold)).collect(Collectors.toList()).isEmpty();
+        boolean isTradeUnactive = unactive.stream().filter(t -> t.looksAlike(trade, 0.05)).collect(Collectors.toList()).isEmpty();
         if (isTradeUnactive) {
             awaitFilling(trade);
         } else {
