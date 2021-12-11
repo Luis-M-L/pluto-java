@@ -5,32 +5,32 @@ import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.TradeRepository;
 import com.example.pluto.entities.TradeTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Trader implements Runnable {
+
+    private Logger LOG = LoggerFactory.getLogger(Trader.class);
 
     private static final String EXCHANGE_LIMIT = "EXCHANGE LIMIT";
 
     private BitfinexAPIClient client;
     private TradeTO trade;
+    private BitfinexAuthService service;
+    private TradeRepository tradeRepository;
+    private BitfinexParser parser;
 
-    @Autowired
-    public BitfinexAuthService service;
-
-    @Autowired
-    public TradeRepository tradeRepository;
-
-    @Autowired
-    public BitfinexParser parser;
-
-    public Trader (BitfinexAPIClient client, BitfinexParser parser, TradeTO trade) {
+    public Trader (BitfinexAuthService service, BitfinexAPIClient client, BitfinexParser parser, TradeRepository tradeRepository, TradeTO trade) {
+        this.service = service;
         this.client = client;
         this.parser = parser;
+        this.tradeRepository = tradeRepository;
         this.trade = trade;
     }
 
@@ -43,7 +43,7 @@ public class Trader implements Runnable {
                 body.setId(trade.getId());
                 body.setIssuedTimestamp(trade.getIssuedTimestamp());
                 TradeTO saved = tradeRepository.save(body);
-                waitFilling(saved);
+                awaitFilling(saved);
             }
         }
     }
@@ -57,18 +57,22 @@ public class Trader implements Runnable {
         return sb.toString();
     }
 
-    private void waitFilling(TradeTO trade) {
-        try {
-            this.wait();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void awaitFilling(TradeTO trade) {
+        synchronized (this){
+            try {
+                this.wait(30000);
+            } catch (InterruptedException e) {
+                LOG.error(e.getMessage());
+            }
         }
+
         List<TradeTO> unactive = service.getUnactiveOrders(trade.getPair());
-        if (unactive.contains(trade)) {
-            trade.setStatus(unactive.get(unactive.indexOf(trade)).getStatus());
-            tradeRepository.save(trade);
+        boolean isTradeUnactive = unactive.stream().filter(t -> t.looksAlike(trade)).collect(Collectors.toList()).isEmpty();
+        if (isTradeUnactive) {
+            awaitFilling(trade);
         } else {
-            waitFilling(trade);
+            trade.setStatus(unactive.get(0).getStatus());
+            tradeRepository.save(trade);
         }
     }
 }

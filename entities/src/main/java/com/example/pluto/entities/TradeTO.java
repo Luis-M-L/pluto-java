@@ -3,6 +3,7 @@ package com.example.pluto.entities;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class TradeTO {
     public static final String CANCELLED_STATUS = "CANCELLED";
 
     @Id
+    @GeneratedValue
     public Long id;
 
     private Long exchangeId;
@@ -114,6 +116,10 @@ public class TradeTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public boolean looksAlike(TradeTO comp) {
+        return this.pair.equals(comp.getPair()) && this.price.equals(comp.getPrice()) && this.amount.equals(comp.getAmount());
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.pluto.bitfinex.authservices;
 import com.example.pluto.bitfinex.BitfinexAPIClient;
 import com.example.pluto.bitfinex.authservices.concurrency.Trader;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
+import com.example.pluto.bitfinex.repositories.TradeRepository;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +26,19 @@ public class BitfinexAuthService {
     @Autowired
     public BitfinexParser parser;
 
+    @Autowired
+    public BitfinexAuthService authService;
+
+    @Autowired
+    public TradeRepository tradeRepository;
+
     public BitfinexAuthService() {
     }
 
     public void trade(List<TradeTO> defTrades) {
+
         defTrades.forEach( t -> {
-            new Thread(new Trader(client, parser, t)).start();
+            new Thread(new Trader(authService, client, parser, tradeRepository, t)).start();
         });
     }
 
