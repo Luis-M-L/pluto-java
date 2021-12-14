@@ -261,6 +261,7 @@ public class AssetManagerTasks {
     }
 
     private static void callTrader(List<TradeTO> trades) {
+        LOG.info("trader calling");
         ObjectMapper mapper = new ObjectMapper();
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/trade/"))
@@ -269,7 +270,7 @@ public class AssetManagerTasks {
                     .build();
             HttpResponse<String> response = null;
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            List<String> res = mapper.readValue(response.body(), new TypeReference<List<String>>() {});
+            List<TradeTO> res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
