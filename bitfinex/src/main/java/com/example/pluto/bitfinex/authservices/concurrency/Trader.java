@@ -4,10 +4,12 @@ import com.example.pluto.bitfinex.BitfinexAPIClient;
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.TradeRepository;
+import com.example.pluto.entities.ExchangeError;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +47,9 @@ public class Trader implements Runnable {
                 TradeTO saved = tradeRepository.save(body);
                 awaitFilling(saved);
             }
+        } else {
+            ExchangeError error = parser.getError(String.valueOf(response.body()));
+            LOG.error(error.getErrorCode(), error.getMessage());
         }
     }
 
@@ -69,10 +74,31 @@ public class Trader implements Runnable {
         List<TradeTO> unactive = service.getUnactiveOrders(trade.getPair());
         boolean isTradeUnactive = unactive.stream().filter(t -> t.looksAlike(trade, 0.05)).collect(Collectors.toList()).isEmpty();
         if (isTradeUnactive) {
-            awaitFilling(trade);
-        } else {
-            trade.setStatus(unactive.get(0).getStatus());
+            adjustTradeDelta(trade, unactive.get(0).getStatus());
             tradeRepository.save(trade);
+        } else {
+            awaitFilling(trade);
         }
+    }
+
+    private void adjustTradeDelta(TradeTO trade, String filling) {
+        filling = filling.replace(" ", "");
+        String[] splits = filling.split("@");
+        trade.setStatus(splits[0]);
+
+        Double[][] sumandos = new Double[splits.length-1][2];
+        double total = 0.0;
+        for (int i = 1; i < splits.length; i++) {
+            sumandos[i-1][0] = Double.valueOf(splits[i].substring(0, splits[i].indexOf('(')));
+            Double quantity = Double.valueOf(splits[i].substring(splits[i].indexOf('(')+1, splits[i].indexOf(')')));
+            total += quantity;
+            sumandos[i-1][1] = quantity;
+        }
+
+        Double price = 0.0;
+        for (int a = 0; a < sumandos.length; a++) {
+            price += sumandos[a][0] * sumandos[a][1] / total;
+        }
+        trade.setPrice(new BigDecimal(price));
     }
 }

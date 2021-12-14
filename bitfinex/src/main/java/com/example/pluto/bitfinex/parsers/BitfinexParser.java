@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex.parsers;
 
+import com.example.pluto.entities.ExchangeError;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeParser;
@@ -63,6 +64,15 @@ public class BitfinexParser implements ExchangeParser {
         TradeTO tradeTO = mapArrayToTrade(innerArray);
 
         return tradeTO;
+    }
+
+    @Override
+    public ExchangeError getError(String body) {
+        ExchangeError error = new ExchangeError();
+        JsonArray array = getJsonArray(body);
+        error.setErrorCode(array.getString(1));
+        error.setMessage(array.getString(2));
+        return error;
     }
 
     private TradeTO mapArrayToTrade(JsonArray innerArray) {
