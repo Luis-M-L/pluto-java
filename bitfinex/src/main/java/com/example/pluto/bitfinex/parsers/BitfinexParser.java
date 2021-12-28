@@ -70,7 +70,7 @@ public class BitfinexParser implements ExchangeParser {
     public ExchangeError getError(String body) {
         ExchangeError error = new ExchangeError();
         JsonArray array = getJsonArray(body);
-        error.setErrorCode(array.getString(1));
+        error.setErrorCode(String.valueOf(array.getJsonNumber(1)));
         error.setMessage(array.getString(2));
         return error;
     }
@@ -94,7 +94,7 @@ public class BitfinexParser implements ExchangeParser {
         parsed.setId(tradeTO.getId());
         parsed.setIssuedTimestamp(tradeTO.getIssuedTimestamp());
 
-        return tradeTO;
+        return parsed;
     }
 
     public List<TradeTO> parseOrders(String json) {

@@ -35,6 +35,9 @@ public class BitfinexAuthService {
     public BitfinexAuthService authService;
 
     @Autowired
+    public PositionsService positionsService;
+
+    @Autowired
     public TradeRepository tradeRepository;
 
     public BitfinexAuthService() {
@@ -45,7 +48,7 @@ public class BitfinexAuthService {
         defTrades.forEach( t -> {
             List<TradeTO> filteredActiveOrders = activeOrders.stream().filter(ao -> ao.looksAlike(t, threshold)).collect(Collectors.toList());
             if (filteredActiveOrders.isEmpty()){
-                new Thread(new Trader(authService, client, parser, tradeRepository, t)).start();
+                new Thread(new Trader(authService, positionsService, client, parser, tradeRepository, t)).start();
             }
         });
     }

@@ -1,6 +1,9 @@
 package com.example.pluto.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "PLUTO_POSITIONS")
@@ -18,6 +21,9 @@ public class PositionTO {
 
     private Double quantity;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+    private Timestamp timestamp;
+
     public PositionTO() {
     }
 
@@ -26,6 +32,14 @@ public class PositionTO {
         this.basket = basket;
         this.currency = currency;
         this.quantity = quantity;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public BasketTO getBasket() {
@@ -50,6 +64,14 @@ public class PositionTO {
 
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

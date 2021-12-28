@@ -118,6 +118,14 @@ public class TradeTO {
         this.status = status;
     }
 
+    public String getBase() {
+        return pair.substring(0, 3);
+    }
+
+    public String getQuoted() {
+        return pair.substring(3, 6);
+    }
+
     public boolean looksAlike(TradeTO comp, double threshold) {
         return this.pair.equals(comp.getPair())
                 && Math.abs(this.price.doubleValue() - comp.getPrice().doubleValue()) < threshold

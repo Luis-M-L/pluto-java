@@ -41,7 +41,7 @@ public class AssetManagerTasks {
             String pair = k.getCurrency() + "BTC";
             BigDecimal price = spots.get(k.getCurrency());
             Double amount = - deviation.get(k).doubleValue();
-            trades.add(new TradeTO(pair, price, amount));
+            trades.add(new TradeTO(pair, price, amount, k.getBasket()));
         }
         if (!trades.isEmpty()) {
             callTrader(trades);
