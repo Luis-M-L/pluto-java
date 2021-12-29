@@ -2,6 +2,7 @@ package com.example.pluto.bitfinex.authservices.concurrency;
 
 import com.example.pluto.bitfinex.BitfinexAPIClient;
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
+import com.example.pluto.bitfinex.authservices.PositionsService;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.TradeRepository;
 import com.example.pluto.entities.ExchangeError;
@@ -13,8 +14,6 @@ import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Trader implements Runnable {
 
@@ -24,12 +23,14 @@ public class Trader implements Runnable {
 
     private BitfinexAPIClient client;
     private TradeTO trade;
-    private BitfinexAuthService service;
+    private BitfinexAuthService bitfinexAuthService;
+    private PositionsService positionsService;
     private TradeRepository tradeRepository;
     private BitfinexParser parser;
 
-    public Trader (BitfinexAuthService service, BitfinexAPIClient client, BitfinexParser parser, TradeRepository tradeRepository, TradeTO trade) {
-        this.service = service;
+    public Trader (BitfinexAuthService bitfinexAuthService, PositionsService positionsService, BitfinexAPIClient client, BitfinexParser parser, TradeRepository tradeRepository, TradeTO trade) {
+        this.bitfinexAuthService = bitfinexAuthService;
+        this.positionsService = positionsService;
         this.client = client;
         this.parser = parser;
         this.tradeRepository = tradeRepository;
@@ -45,11 +46,11 @@ public class Trader implements Runnable {
                 body.setId(trade.getId());
                 body.setIssuedTimestamp(trade.getIssuedTimestamp());
                 TradeTO saved = tradeRepository.save(body);
-                awaitFilling(saved);
+
             }
         } else {
             ExchangeError error = parser.getError(String.valueOf(response.body()));
-            LOG.error(error.getErrorCode(), error.getMessage());
+            LOG.error(error.getMessage());
         }
     }
 
@@ -60,25 +61,6 @@ public class Trader implements Runnable {
             .append("\"price\": \"").append(trade.getPrice()).append("\", ")
             .append("\"amount\": \"").append(trade.getAmount()).append("\"}");
         return sb.toString();
-    }
-
-    private void awaitFilling(TradeTO trade) {
-        synchronized (this){
-            try {
-                this.wait(30000);
-            } catch (InterruptedException e) {
-                LOG.error(e.getMessage());
-            }
-        }
-
-        List<TradeTO> unactive = service.getUnactiveOrders(trade.getPair());
-        boolean isTradeUnactive = unactive.stream().filter(t -> t.looksAlike(trade, 0.05)).collect(Collectors.toList()).isEmpty();
-        if (isTradeUnactive) {
-            adjustTradeDelta(trade, unactive.get(0).getStatus());
-            tradeRepository.save(trade);
-        } else {
-            awaitFilling(trade);
-        }
     }
 
     private void adjustTradeDelta(TradeTO trade, String filling) {

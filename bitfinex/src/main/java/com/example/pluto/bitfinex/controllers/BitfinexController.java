@@ -76,6 +76,11 @@ public class BitfinexController implements ExchangeController {
         return defTrades;
     }
 
+    @Override
+    public List<TradeTO> updateChangedTrades(List<TradeTO> placed) {
+        return bitfinexAuthService.updateIfChanged(placed);
+    }
+
     @GetMapping(value = "user")
     public void getUserInfo() {
         bitfinexAuthService.getUserInfo();

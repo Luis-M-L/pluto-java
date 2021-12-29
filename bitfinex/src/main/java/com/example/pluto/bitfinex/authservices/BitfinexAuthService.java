@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,4 +71,28 @@ public class BitfinexAuthService {
         }
         return userInfo;
     }
+
+    public List<TradeTO> filterUnactive(List<TradeTO> placed) {
+        List<TradeTO> filtered = new ArrayList<>();
+        Map<String, List<TradeTO>> unactive = new HashMap<>();
+        for (TradeTO p : placed) {
+            String pair = p.getPair();
+            if (!unactive.containsKey(pair)) {
+                unactive.put(pair, getUnactiveOrders(pair));
+            }
+            unactive.get(pair).forEach(u -> {
+                if (u.getExchangeId() != null && u.getExchangeId().equals(p.getExchangeId())) {
+                    filtered.add(u);
+                }
+            });
+        }
+        return filtered;
+    }
+
+    public List<TradeTO> updateIfChanged(List<TradeTO> placed) {
+        List<TradeTO> updated = new ArrayList<>();
+        tradeRepository.saveAll(filterUnactive(placed)).forEach(t -> updated.add(t));
+        return updated;
+    }
+
 }

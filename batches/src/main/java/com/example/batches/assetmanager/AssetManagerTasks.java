@@ -15,7 +15,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AssetManagerTasks {
 
@@ -36,16 +39,48 @@ public class AssetManagerTasks {
 
     private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
         LOG.info("Submiting orders");
+        Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         List<TradeTO> trades = new ArrayList(deviation.size());
         for (PositionTO k : deviation.keySet()) {
             String pair = k.getCurrency() + "BTC";
             BigDecimal price = spots.get(k.getCurrency());
             Double amount = - deviation.get(k).doubleValue();
-            trades.add(new TradeTO(pair, price, amount, k.getBasket()));
+            TradeTO trade = new TradeTO(pair, price, amount);
+            if (!tradesByBaskets.containsKey(k.getBasket().getId())) {
+                tradesByBaskets.put(k.getBasket().getId(), new ArrayList<>());
+            }
+            tradesByBaskets.get(k.getBasket().getId()).add(trade);
         }
-        if (!trades.isEmpty()) {
-            callTrader(trades);
+        tradesByBaskets.forEach((k, v) -> {
+            updateLocalBooks(k, callTrader(v));
+        });
+    }
+
+    private static void updateLocalBooks(Long k, List<TradeTO> placedOrders) {
+        List<TradeTO> recentlyFilled = checkOrdersStatus(placedOrders);
+        updatePositions(k, recentlyFilled);
+    }
+
+    private static List<TradeTO> checkOrdersStatus(List<TradeTO> placedOrders) {
+        LOG.info("Updating positions");
+        ObjectMapper mapper = new ObjectMapper();
+        List<TradeTO> res = null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/update/"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(placedOrders)))
+                    .build();
+            HttpResponse<String> response = null;
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        return res;
     }
 
     private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
@@ -184,6 +219,27 @@ public class AssetManagerTasks {
         return positions;
     }
 
+    private static void updatePositions(Long basketId, List<TradeTO> trades) {
+        LOG.info("Updating positions");
+        ObjectMapper mapper = new ObjectMapper();
+        List<TradeTO> res = null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/position/update/"+basketId))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
+                    .build();
+            HttpResponse<String> response = null;
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static Map<String, BigDecimal> getSpots() {
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spots/")).build();
         HttpResponse<String> response = null;
@@ -260,9 +316,10 @@ public class AssetManagerTasks {
         return baskets;
     }
 
-    private static void callTrader(List<TradeTO> trades) {
+    private static List<TradeTO> callTrader(List<TradeTO> trades) {
         LOG.info("trader calling");
         ObjectMapper mapper = new ObjectMapper();
+        List<TradeTO> res = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/trade/"))
                     .header("Content-Type", "application/json")
@@ -270,7 +327,7 @@ public class AssetManagerTasks {
                     .build();
             HttpResponse<String> response = null;
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            List<TradeTO> res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+            res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -279,5 +336,6 @@ public class AssetManagerTasks {
             e.printStackTrace();
         }
         LOG.info("Submited trades: " + trades);
+        return res;
     }
 }
