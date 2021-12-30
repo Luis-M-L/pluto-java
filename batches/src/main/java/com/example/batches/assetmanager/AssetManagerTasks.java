@@ -1,6 +1,7 @@
 package com.example.batches.assetmanager;
 
 import com.example.pluto.entities.*;
+import com.example.pluto.errors.PlutoRestError;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,9 +63,9 @@ public class AssetManagerTasks {
     }
 
     private static List<TradeTO> checkOrdersStatus(List<TradeTO> placedOrders) {
-        LOG.info("Updating positions");
+        LOG.info("Checking orders to update positions");
         ObjectMapper mapper = new ObjectMapper();
-        List<TradeTO> res = null;
+        List<TradeTO> res = new ArrayList<>();
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/update/"))
                     .header("Content-Type", "application/json")
@@ -72,7 +73,12 @@ public class AssetManagerTasks {
                     .build();
             HttpResponse<String> response = null;
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+            if (response.statusCode() != 200) {
+                PlutoRestError error = mapper.readValue(response.body(), new TypeReference<PlutoRestError>() {});
+                LOG.error(error.getError());
+            } else {
+                res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+            }
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -122,12 +128,29 @@ public class AssetManagerTasks {
         Map<String, Map<String, Double>> pos = positionsAsMap(positions);
         Map<String, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
         positions.forEach(p -> {
-            BigDecimal minuendo = new BigDecimal(pos.get(p.getBasket().getLabel()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
-            BigDecimal sustraendo = new BigDecimal(currPos.get(p.getBasket().getLabel()).get(p.getCurrency()), mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal minuendo = getPositionValue(pos, p);
+            BigDecimal sustraendo = getPositionValue(currPos, p);
             BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext).setScale(10, RoundingMode.HALF_UP);
             deviations.put(p, diferencia);
         });
         return deviations;
+    }
+
+    /**
+     * Position on currencies that does not exist in our system are considered zero
+     * @param positionsMap positions ordered by basket and currency
+     * @param position position being analyzed
+     * @return quantity of analyzed position
+     */
+    public static BigDecimal getPositionValue(Map<String, Map<String, Double>> positionsMap, PositionTO position) {
+        String label = position.getBasket() != null ? position.getBasket().getLabel() : null;
+        String ccy = position.getCurrency();
+
+        Double value = 0.0;
+        if (label != null && ccy != null && positionsMap.get(label) != null && positionsMap.get(label).get(ccy) != null) {
+            value = positionsMap.get(label).get(ccy);
+        }
+        return new BigDecimal(value, mathContext).setScale(10, RoundingMode.HALF_UP);
     }
 
     /**
@@ -195,7 +218,13 @@ public class AssetManagerTasks {
         for (PositionTO p : positions) {
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
             BigDecimal price = spots.get(p.getCurrency());
-            BigDecimal eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
+            BigDecimal eq;
+            if (quantity == null || price == null) {
+                LOG.warn("Quantity or price null for pair " + p.getCurrency());
+                eq = new BigDecimal(0.0, mathContext);
+            } else {
+                eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
+            }
 
             equivalent.putIfAbsent(p.getBasket().getLabel(), new HashMap<>());
             equivalent.get(p.getBasket().getLabel()).put(p.getCurrency(), eq.setScale(10, RoundingMode.HALF_UP));

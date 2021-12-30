@@ -78,6 +78,9 @@ public class BitfinexController implements ExchangeController {
 
     @Override
     public List<TradeTO> updateChangedTrades(List<TradeTO> placed) {
+        if (placed == null) {
+            return new ArrayList<>(0);
+        }
         return bitfinexAuthService.updateIfChanged(placed);
     }
 

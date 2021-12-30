@@ -39,17 +39,17 @@ public class Trader implements Runnable {
 
     @Override
     public void run() {
+        // TODO: return saved
         HttpResponse response = client.authPost(Arrays.asList("v2", "auth", "w", "order", "submit"), new HashMap<>(), buildBody());
-        if (response.statusCode() == 200) {
+        if (response != null && response.statusCode() == 200) {
             if (response.body() != null) {
                 TradeTO body = parser.convertOrderIntoTrade(trade, response.body().toString());
                 body.setId(trade.getId());
                 body.setIssuedTimestamp(trade.getIssuedTimestamp());
                 TradeTO saved = tradeRepository.save(body);
-
             }
         } else {
-            ExchangeError error = parser.getError(String.valueOf(response.body()));
+            ExchangeError error = response != null ? parser.getError(String.valueOf(response.body())) : new ExchangeError(ExchangeError.NO_RESPONSE_FROM_EXCHANGE);
             LOG.error(error.getMessage());
         }
     }

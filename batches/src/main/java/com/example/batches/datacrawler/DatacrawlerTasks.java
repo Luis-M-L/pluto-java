@@ -28,7 +28,7 @@ public class DatacrawlerTasks {
     }
 
     private static List<InstrumentTO> getParesVigilados(){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://ordenanza:8080/instruments/")).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48557/instruments/")).build();
         HttpResponse<String> response = null;
         List<InstrumentTO> vigilados = new ArrayList<>();
         try {
@@ -44,7 +44,7 @@ public class DatacrawlerTasks {
     }
 
     private static void requestSave(String instrument){
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://bitfinex:8080/bitfinex/spot/" + instrument))
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:48558/bitfinex/spot/" + instrument))
                 .method("POST", HttpRequest.BodyPublishers.noBody())
                 .setHeader("Content-Type", "application/json")
                 .build();
