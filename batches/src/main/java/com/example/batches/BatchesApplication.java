@@ -22,6 +22,6 @@ public class BatchesApplication {
 
 	@Scheduled(fixedRate = 60000)
 	public void checkPositions() {
-		AssetManagerTasks.rebalance();
+		AssetManagerTasks.balance();
 	}
 }
