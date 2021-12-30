@@ -12,7 +12,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +30,7 @@ public class BitfinexAuthService {
     @Value("${pluto.acting.threshold}")
     private double threshold;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BitfinexAuthService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BitfinexAuthService.class);
 
     @Autowired
     public BitfinexAPIClient client;
@@ -38,17 +47,50 @@ public class BitfinexAuthService {
     @Autowired
     public TradeRepository tradeRepository;
 
+    public ExecutorService executor = Executors.newWorkStealingPool();
+
     public BitfinexAuthService() {
     }
 
-    public void trade(List<TradeTO> defTrades) {
-        List<TradeTO> activeOrders = authService.getActiveOrders();
-        defTrades.forEach( t -> {
+    public List<TradeTO> trade(List<TradeTO> defTrades) {
+        List<TradeTO> openTrades = null;
+        try {
+            List<TradeTO> activeOrders = authService.getActiveOrders();
+            List<Future<TradeTO>> sentTrades = sendTradeIfUnexistent(defTrades, activeOrders);
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+            openTrades = tradeFuturesToTradeList(sentTrades);
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage());
+        }
+        return openTrades != null ? openTrades : new ArrayList<>(0);
+    }
+
+    private List<Future<TradeTO>> sendTradeIfUnexistent(List<TradeTO> defTrades, List<TradeTO> activeOrders) {
+        List<Future<TradeTO>> sentTrades = new ArrayList<>(defTrades != null ? defTrades.size() : 0);
+        defTrades.forEach(t -> {
             List<TradeTO> filteredActiveOrders = activeOrders.stream().filter(ao -> ao.looksAlike(t, threshold)).collect(Collectors.toList());
             if (filteredActiveOrders.isEmpty()){
-                new Thread(new Trader(authService, positionsService, client, parser, tradeRepository, t)).start();
+                Future<TradeTO> sentTrade = executor.submit(new Trader(authService, positionsService, client, parser, tradeRepository, t));
+                sentTrades.add(sentTrade);
             }
         });
+        return sentTrades;
+    }
+
+    private List<TradeTO> tradeFuturesToTradeList(List<Future<TradeTO>> sentTrades) {
+        List<TradeTO> openTrades = new ArrayList<>(sentTrades.size());
+        sentTrades.forEach(f -> {
+            try {
+                if (f.get() != null) {
+                    openTrades.add(f.get());
+                }
+            } catch (InterruptedException e) {
+                LOG.error(e.getMessage());
+            } catch (ExecutionException e) {
+                LOG.error(e.getMessage());
+            }
+        });
+        return openTrades;
     }
 
     public List<TradeTO> getActiveOrders() {
@@ -67,7 +109,7 @@ public class BitfinexAuthService {
         if (response.statusCode() == 200) {
             userInfo = response.body().toString();
         } else {
-            LOGGER.error("Error retrieving user info from Bitfinex", response.body());
+            LOG.error("Error retrieving user info from Bitfinex", response.body());
         }
         return userInfo;
     }
