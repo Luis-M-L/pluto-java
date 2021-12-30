@@ -1,5 +1,6 @@
 package com.example.batches.assetmanager;
 
+import com.example.batches.PlutoTasks;
 import com.example.pluto.PlutoConstants.*;
 import com.example.pluto.entities.*;
 import com.example.pluto.errors.PlutoRestError;
@@ -22,9 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.pluto.PlutoConstants.HTTP_PREFIX;
+import static com.example.pluto.PlutoConstants.HEADER_NAME_CONTENT_TYPE;
+import static com.example.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
 
-public class AssetManagerTasks {
+public class AssetManagerTasks extends PlutoTasks {
 
     public static Logger LOG = LoggerFactory.getLogger(AssetManagerTasks.class);
 
@@ -68,7 +70,7 @@ public class AssetManagerTasks {
         List<TradeTO> res = new ArrayList<>();
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_UPDATE.value())))
-                    .header("Content-Type", "application/json")
+                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(placedOrders)))
                     .build();
             HttpResponse<String> response;
@@ -166,7 +168,7 @@ public class AssetManagerTasks {
             for (WeightTO weight : basket.getWeights()) {
                 BigDecimal price = spots.get(weight.getCurrency());
                 BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
-
+                LOG.info("[weight]: "+weight+"[sum]: "+sum+"[price]: "+price);
                 BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
                 PositionTO position = new PositionTO(null, basket, weight.getCurrency(), q.doubleValue());
 
@@ -251,7 +253,7 @@ public class AssetManagerTasks {
         List<TradeTO> res = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_UPDATE.value(), String.valueOf(basketId))))
-                    .header("Content-Type", "application/json")
+                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
                     .build();
             HttpResponse<String> response;
@@ -348,7 +350,7 @@ public class AssetManagerTasks {
         List<TradeTO> res = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_TRADE.value())))
-                    .header("Content-Type", "application/json")
+                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
                     .build();
             HttpResponse<String> response;
@@ -365,11 +367,4 @@ public class AssetManagerTasks {
         return res;
     }
 
-    private static String buildUrl(String... split) {
-        StringBuilder sb = new StringBuilder(HTTP_PREFIX);
-        for (int i = 0; i <= split.length - 1; i++) {
-            sb.append(split[i]);
-        }
-        return sb.toString();
-    }
 }
