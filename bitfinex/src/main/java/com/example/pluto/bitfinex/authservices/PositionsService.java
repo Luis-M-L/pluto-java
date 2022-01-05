@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PositionsService {
@@ -62,5 +64,18 @@ public class PositionsService {
             trades.forEach(t -> involvedPositions.addAll(updatePositions(t, basket)));
         }
         return involvedPositions;
+    }
+
+    public List<PositionTO> updatePositionsIfTradesFilled(Long basketId, List<TradeTO> trades, Map<String, List<TradeTO>> inactiveTrades) {
+        List<TradeTO> filledTrades = trades.stream().filter(t -> {
+            List<TradeTO> pairTrades = inactiveTrades.get(t.getPair());
+            if (pairTrades != null) {
+                int idx = pairTrades.indexOf(t);
+                return idx > -1 && TradeTO.CLOSED_STATUS.equals(pairTrades.get(idx).getStatus());
+            } else {
+                return false;
+            }
+        }).collect(Collectors.toList());
+        return updatePositions(basketId, filledTrades);
     }
 }

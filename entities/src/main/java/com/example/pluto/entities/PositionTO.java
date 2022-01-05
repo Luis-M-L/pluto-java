@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "PLUTO_POSITIONS")
@@ -25,6 +27,7 @@ public class PositionTO {
     private Timestamp timestamp;
 
     public PositionTO() {
+        timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
     public PositionTO(Long id, BasketTO basket, String currency, Double quantity) {
@@ -32,6 +35,7 @@ public class PositionTO {
         this.basket = basket;
         this.currency = currency;
         this.quantity = quantity;
+        timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
     public Long getId() {

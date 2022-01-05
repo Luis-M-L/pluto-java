@@ -1,9 +1,9 @@
 package com.example.batches.assetmanager;
 
 import com.example.batches.PlutoTasks;
-import com.example.pluto.PlutoConstants.*;
+import com.example.pluto.PlutoConstants.Path;
+import com.example.pluto.PlutoConstants.Socket;
 import com.example.pluto.entities.*;
-import com.example.pluto.errors.PlutoRestError;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,37 +56,7 @@ public class AssetManagerTasks extends PlutoTasks {
             }
             tradesByBaskets.get(k.getBasket().getId()).add(trade);
         }
-        tradesByBaskets.forEach((k, v) -> updateLocalBooks(k, callTrader(v)));
-    }
-
-    private static void updateLocalBooks(Long k, List<TradeTO> placedOrders) {
-        List<TradeTO> recentlyFilled = checkOrdersStatus(placedOrders);
-        updatePositions(k, recentlyFilled);
-    }
-
-    private static List<TradeTO> checkOrdersStatus(List<TradeTO> placedOrders) {
-        LOG.info("Checking orders to update positions");
-        ObjectMapper mapper = new ObjectMapper();
-        List<TradeTO> res = new ArrayList<>();
-        try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_UPDATE.value())))
-                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(placedOrders)))
-                    .build();
-            HttpResponse<String> response;
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                PlutoRestError error = mapper.readValue(response.body(), new TypeReference<>() {});
-                LOG.error(error.getError());
-            } else {
-                res = mapper.readValue(response.body(), new TypeReference<>() {});
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            LOG.error(e.getMessage());
-        }
-        return res;
+        tradesByBaskets.forEach((k, v) -> updatePositions(k, callTrader(v)));
     }
 
     private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
@@ -161,6 +131,10 @@ public class AssetManagerTasks extends PlutoTasks {
      */
     public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<String, BigDecimal> sums) {
         List<PositionTO> wished = new ArrayList<>();
+        if (spots == null || spots.isEmpty()) {
+            LOG.error("Could not get wished positions by design due to lack of spots");
+            return wished;
+        }
 
         for (BasketTO basket : baskets) {
             BigDecimal sum = sums.get(basket.getLabel());
@@ -355,7 +329,7 @@ public class AssetManagerTasks extends PlutoTasks {
                     .build();
             HttpResponse<String> response;
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            res = mapper.readValue(response.body(), new TypeReference<List<TradeTO>>() {});
+            res = mapper.readValue(response.body(), new TypeReference<>() {});
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
