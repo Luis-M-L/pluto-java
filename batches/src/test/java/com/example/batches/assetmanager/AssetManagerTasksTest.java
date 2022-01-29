@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class AssetManagerTasksTest {
 
@@ -46,7 +47,7 @@ public class AssetManagerTasksTest {
     @Test
     public void testGetCurrentWishedPositions() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        List<PositionTO> actual = amt.getCurrentWishedPositions(baskets, spotsMap, equivalentSum);
+        List<PositionTO> actual = amt.getPositionsByDesign(baskets, spotsMap, equivalentSum);
 
         assertEquals(wished, actual);
     }
@@ -86,9 +87,21 @@ public class AssetManagerTasksTest {
     @Test
     public void testFilterDeviations() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<PositionTO, BigDecimal> actual = amt.filterDeviations(deviations, 0.05, equivalentSum, spotsMap);
+        Map<PositionTO, BigDecimal> actual = amt.filterDeviations(deviations, 0.05, positions, spotsMap);
 
-        assertEquals(filteredDeviations, actual);
+        assertEquals(deviations, actual);
+
+        Map<PositionTO, BigDecimal> actual2 = amt.filterDeviations(deviations, 1.0, positions, spotsMap);
+        assertNotEquals(deviations, actual2);
+    }
+
+    @Test
+    public void testGetPositionValue() {
+        AssetManagerTasks amt = new AssetManagerTasks();
+        BigDecimal position = amt.getPositionValue(amt.positionsAsMap(positions), positions.get(0));
+
+        BigDecimal expected = new BigDecimal(positions.get(0).getQuantity(), mathContext).setScale(10, RoundingMode.HALF_UP);
+        assertEquals(expected, position);
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {

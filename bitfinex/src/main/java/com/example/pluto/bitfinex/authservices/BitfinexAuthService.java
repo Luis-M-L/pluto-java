@@ -100,6 +100,7 @@ public class BitfinexAuthService {
 
     public List<TradeTO> getUnactiveOrders(String pair) {
         HttpResponse response = client.authPost(Arrays.asList("v2", "auth", "r", "orders", "t"+pair, "hist"), new HashMap<>(), "{\"limit\": 5}");
+        LOG.debug("Got orders: " + response.body().toString());
         return parser.parseOrders(response.body().toString());
     }
 

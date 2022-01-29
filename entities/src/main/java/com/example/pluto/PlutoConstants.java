@@ -7,8 +7,8 @@ public final class PlutoConstants {
     public final static String HEADER_VALUE_APPLICATION_JSON = "application/json";
 
     public enum Socket {
-        ORDENANZA("ordenanza:48557"),
-        BITFINEX("bitfinex:48558");
+        ORDENANZA("localhost:48557"),
+        BITFINEX("localhost:48558");
 
         private String s;
 
@@ -26,7 +26,7 @@ public final class PlutoConstants {
         BITFINEX_TRADE("/bitfinex/trade/"),
         BITFINEX_SPOTS("/bitfinex/spots/"),
         BITFINEX_SPOT("/bitfinex/spot/"),
-        BITFINEX_UPDATE("/bitfinex/update/"),
+        BITFINEX_UNACTIVE("/bitfinex/trade/unactive/"),
         POSITION_UPDATE("/position/update/"),
         POSITION_ALL("/position/all/"),
         INSTRUMENTS("/instruments/");

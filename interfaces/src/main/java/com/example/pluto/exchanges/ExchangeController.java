@@ -24,6 +24,9 @@ public interface ExchangeController {
     @GetMapping(value = "book/{instrument}")
     BookTO getBook(@PathVariable String instrument, @RequestParam(required = false) String time);
 
+    @GetMapping(value = "trade/unactive/{pair}")
+    List<TradeTO> getUnactiveOrders(@PathVariable String pair);
+
     @PostMapping(value = "trade")
     List<TradeTO> trade(@RequestBody List<TradeTO> defTrades);
 

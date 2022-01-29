@@ -12,6 +12,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.stream.JsonParser;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -77,12 +78,13 @@ public class BitfinexParser implements ExchangeParser {
 
     private TradeTO mapArrayToTrade(JsonArray innerArray) {
         TradeTO tradeTO = new TradeTO();
-        tradeTO.setExchangeId(innerArray.getJsonNumber(0).longValue());
+        tradeTO.setExchangeId(innerArray.getJsonNumber(2).longValue());
         tradeTO.setEffectiveTimestamp(new Timestamp(innerArray.getJsonNumber(4).longValue()));
         tradeTO.setPair(innerArray.getString(3).substring(1));
         tradeTO.setPrice(innerArray.getJsonNumber(16).bigDecimalValue());
-        tradeTO.setAmount(innerArray.getJsonNumber(6).doubleValue());
-        tradeTO.setStatus(innerArray.getString(13));
+        tradeTO.setAmount(innerArray.getJsonNumber(7).doubleValue());
+        String fillingReport = innerArray.getString(13);
+        updateTradeWithFillInfo(tradeTO, fillingReport);
         return tradeTO;
     }
 
@@ -102,5 +104,28 @@ public class BitfinexParser implements ExchangeParser {
         JsonArray array = getJsonArray(json);
         array.iterator().forEachRemaining(t -> trades.add(mapArrayToTrade((JsonArray) t)));
         return trades;
+    }
+
+    private void updateTradeWithFillInfo(TradeTO trade, String filling) {
+        filling = filling.replace(" ", "");
+        String[] splits = filling.split("@");
+        trade.setStatus(splits[0]);
+
+        if (splits.length > 1) {
+            Double[][] sumandos = new Double[splits.length - 1][2];
+            double total = 0.0;
+            for (int i = 1; i < splits.length; i++) {
+                sumandos[i - 1][0] = Double.valueOf(splits[i].substring(0, splits[i].indexOf('(')));
+                Double quantity = Double.valueOf(splits[i].substring(splits[i].indexOf('(') + 1, splits[i].indexOf(')')));
+                total += quantity;
+                sumandos[i - 1][1] = quantity;
+            }
+
+            Double price = sumandos.length == 0 ? trade.getPrice().doubleValue() : 0.0;
+            for (int a = 0; a < sumandos.length; a++) {
+                price += sumandos[a][0] * sumandos[a][1] / total;
+            }
+            trade.setPrice(new BigDecimal(price));
+        }
     }
 }

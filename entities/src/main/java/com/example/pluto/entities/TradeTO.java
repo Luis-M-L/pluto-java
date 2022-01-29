@@ -1,6 +1,7 @@
 package com.example.pluto.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +18,7 @@ import java.util.Objects;
 public class TradeTO {
 
     public static final String ACTIVE_STATUS = "ACTIVE";
-    public static final String CLOSED_STATUS = "CLOSED";
+    public static final String CLOSED_STATUS = "EXECUTED";
     public static final String CANCELLED_STATUS = "CANCELLED";
 
     @Id
@@ -118,10 +119,12 @@ public class TradeTO {
         this.status = status;
     }
 
+    @JsonIgnore
     public String getBase() {
         return pair.substring(0, 3);
     }
 
+    @JsonIgnore
     public String getQuoted() {
         return pair.substring(3, 6);
     }

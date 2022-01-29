@@ -1,32 +1,20 @@
 package com.example.batches.assetmanager;
 
-import com.example.batches.PlutoTasks;
-import com.example.pluto.PlutoConstants.Path;
-import com.example.pluto.PlutoConstants.Socket;
+import com.example.batches.PlutoBatchUtils;
 import com.example.pluto.entities.*;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static com.example.pluto.PlutoConstants.HEADER_NAME_CONTENT_TYPE;
-import static com.example.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
-
-public class AssetManagerTasks extends PlutoTasks {
+public class AssetManagerTasks extends PlutoBatchUtils {
 
     public static Logger LOG = LoggerFactory.getLogger(AssetManagerTasks.class);
 
@@ -36,14 +24,15 @@ public class AssetManagerTasks extends PlutoTasks {
         List<BasketTO> baskets = getBaskets();
         Map<String, BigDecimal> spots = getSpots();
         List<PositionTO> positions = getPositions();
+        List<PositionTO> positionsByDesign = getPositionsByDesign(baskets, spots, getEquivalentSumByBasket(positions, spots));
 
         double threshold = 0.05;
 
-        Map<PositionTO, BigDecimal> deviation = getPositionsToUpdate(baskets, spots, positions, threshold);
-        submitOrders(deviation, spots);
+        Map<PositionTO, BigDecimal> deviations = filterDeviations(getDeviations(positions, positionsByDesign), threshold, positions, spots);
+        submitTradesAndUpdatePositions(buildTrades(deviations, spots));
     }
 
-    private static void submitOrders(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
+    private static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
         LOG.info("Submitting orders");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {
@@ -54,53 +43,102 @@ public class AssetManagerTasks extends PlutoTasks {
             if (!tradesByBaskets.containsKey(k.getBasket().getId())) {
                 tradesByBaskets.put(k.getBasket().getId(), new ArrayList<>());
             }
-            tradesByBaskets.get(k.getBasket().getId()).add(trade);
+            if (!"BTCBTC".equals(trade.getPair())) {
+                tradesByBaskets.get(k.getBasket().getId()).add(trade);
+            }
         }
-        tradesByBaskets.forEach((k, v) -> updatePositions(k, callTrader(v)));
+        return tradesByBaskets;
     }
 
-    private static Map<PositionTO, BigDecimal> getPositionsToUpdate(List<BasketTO> baskets, Map<String, BigDecimal> spots, List<PositionTO> positions, double threshold) {
-        Map<String, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
-        List<PositionTO> currentWishedPositions = getCurrentWishedPositions(baskets, spots, basketEquivalentSums);
-        Map<PositionTO, BigDecimal> deviations = getDeviations(positions, currentWishedPositions);
-        return filterDeviations(deviations, threshold, basketEquivalentSums, spots);
+    /**
+     *
+     * @param tradesByBaskets
+     */
+    private static void submitTradesAndUpdatePositions(Map<Long, List<TradeTO>> tradesByBaskets) {
+        tradesByBaskets.forEach((k, v) -> {
+            List<TradeTO> sells = v.stream().filter(t -> t.getAmount() < 0).collect(Collectors.toList());
+            List<TradeTO> buys = v.stream().filter(t -> t.getAmount() > 0).collect(Collectors.toList());
+            List<TradeTO> filled = new ArrayList<>(v.size());
+            filled.addAll(waitToBeFilled(callTrader(sells)));
+            filled.addAll(waitToBeFilled(callTrader(buys)));
+            updatePositions(k, filled);
+        });
+    }
+
+    private static List<TradeTO> waitToBeFilled(List<TradeTO> placed) {
+        List<TradeTO> filled = filterUnactive(placed);
+        if (filled.isEmpty() && placed != null && !placed.isEmpty()) {
+            try {
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return waitToBeFilled(placed);
+        } else {
+            return filled;
+        }
+    }
+
+    public static List<TradeTO> filterUnactive(List<TradeTO> placed) {
+        List<TradeTO> filtered = new ArrayList<>();
+        if (placed == null || placed.isEmpty()) {
+            return filtered;
+        }
+
+        Map<String, List<TradeTO>> unactive = new HashMap<>();
+        for (TradeTO p : placed) {
+            String pair = p.getPair();
+            if (!unactive.containsKey(pair)) {
+                unactive.put(pair, getUnactiveOrders(pair));
+            }
+            unactive.get(pair).forEach(u -> {
+                if (u.getExchangeId() != null && u.getExchangeId().equals(p.getExchangeId())) {
+                    filtered.add(u);
+                }
+            });
+        }
+        return filtered;
     }
 
     /**
      * Filters deviations map to keep only the ones which must be corrected attending to the threshold
      * @param deviations deviation values for each position
      * @param threshold this limits which positions must be corrected and which not to (x per one, 100% = 1)
-     * @param basketEquivalentSums base to calculate deviation as percentage in the basket in order to compare to threshold
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return deviations bigger than threshold
      */
-    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, Map<String, BigDecimal> basketEquivalentSums, Map<String, BigDecimal> spots) {
+    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, List<PositionTO> positions, Map<String, BigDecimal> spots) {
+        boolean proceed = false;
+        Map<String, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         Map<PositionTO, BigDecimal> filtered = new HashMap<>();
         for (PositionTO p : deviations.keySet()) {
             BigDecimal deviationBtcEq = deviations.get(p).multiply(spots.get(p.getCurrency()));
             BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket().getLabel()), mathContext);
+            filtered.put(p, deviations.get(p));
             if (deviationOverSum.abs().doubleValue() > threshold) {
-                filtered.put(p, deviations.get(p));
+                proceed = true;
             }
         }
-        return filtered;
+        return proceed ? filtered : new HashMap<>(0);
     }
 
     /**
      * Calculates the difference between what is and what should be for each position
      * @param positions actual positions
-     * @param currentWishedPositions positions that should be caring the basket design and current spots
+     * @param positionsByDesign positions that should be caring the basket design and current spots
      * @return the excess in each position
      */
-    public static Map<PositionTO, BigDecimal> getDeviations(List<PositionTO> positions, List<PositionTO> currentWishedPositions) {
+    public static Map<PositionTO, BigDecimal> getDeviations(List<PositionTO> positions, List<PositionTO> positionsByDesign) {
         Map<PositionTO, BigDecimal> deviations = new HashMap<>();
         Map<String, Map<String, Double>> pos = positionsAsMap(positions);
-        Map<String, Map<String, Double>> currPos = positionsAsMap(currentWishedPositions);
+        Map<String, Map<String, Double>> posByDesign = positionsAsMap(positionsByDesign);
         positions.forEach(p -> {
             BigDecimal minuendo = getPositionValue(pos, p);
-            BigDecimal sustraendo = getPositionValue(currPos, p);
+            BigDecimal sustraendo = getPositionValue(posByDesign, p);
             BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext).setScale(10, RoundingMode.HALF_UP);
-            deviations.put(p, diferencia);
+            if (BigDecimal.ZERO.setScale(10, RoundingMode.HALF_UP).compareTo(diferencia) != 0) {
+                deviations.put(p, diferencia);
+            }
         });
         return deviations;
     }
@@ -118,6 +156,8 @@ public class AssetManagerTasks extends PlutoTasks {
         Double value = 0.0;
         if (label != null && ccy != null && positionsMap.get(label) != null && positionsMap.get(label).get(ccy) != null) {
             value = positionsMap.get(label).get(ccy);
+        } else {
+            LOG.error("Void value for position: " + position);
         }
         return new BigDecimal(value, mathContext).setScale(10, RoundingMode.HALF_UP);
     }
@@ -129,7 +169,7 @@ public class AssetManagerTasks extends PlutoTasks {
      * @param sums addition in base currency (BTC) of all the positions in a basket
      * @return the positions that we should have
      */
-    public static List<PositionTO> getCurrentWishedPositions(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<String, BigDecimal> sums) {
+    public static List<PositionTO> getPositionsByDesign(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<String, BigDecimal> sums) {
         List<PositionTO> wished = new ArrayList<>();
         if (spots == null || spots.isEmpty()) {
             LOG.error("Could not get wished positions by design due to lack of spots");
@@ -205,59 +245,6 @@ public class AssetManagerTasks extends PlutoTasks {
         return equivalent;
     }
 
-    private static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_ALL.value()))).build();
-        HttpResponse<String> response = null;
-        List<PositionTO> positions = new ArrayList<>();
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            positions = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Got positions: " + positions);
-        return positions;
-    }
-
-    private static void updatePositions(Long basketId, List<TradeTO> trades) {
-        LOG.info("Updating positions");
-        ObjectMapper mapper = new ObjectMapper();
-        List<TradeTO> res = null;
-        try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_UPDATE.value(), String.valueOf(basketId))))
-                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
-                    .build();
-            HttpResponse<String> response;
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            res = mapper.readValue(response.body(), new TypeReference<>() {});
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static Map<String, BigDecimal> getSpots() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_SPOTS.value()))).build();
-        HttpResponse<String> response;
-        List<SpotTO> spots = new ArrayList<>();
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            spots = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Got spots: " + spots);
-        return AssetManagerTasks.spotsAsMap(spots);
-    }
-
     /**
      * Transforms a list of complete SpotTO objects into Map: name, spot
      * @param spots list to be transformed
@@ -299,45 +286,6 @@ public class AssetManagerTasks extends PlutoTasks {
                 res.put(p.getBasket().getLabel(), value);
             }
         });
-        return res;
-    }
-
-    private static List<BasketTO> getBaskets() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.ORDENANZA.value(), Path.BASKET_ALL.value()))).build();
-        HttpResponse<String> response;
-        List<BasketTO> baskets = new ArrayList<>();
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            baskets = new ObjectMapper().readValue(response.body(), new TypeReference<List<BasketTO>>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Got baskets: " + baskets);
-        return baskets;
-    }
-
-    private static List<TradeTO> callTrader(List<TradeTO> trades) {
-        LOG.info("trader calling");
-        ObjectMapper mapper = new ObjectMapper();
-        List<TradeTO> res = null;
-        try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_TRADE.value())))
-                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
-                    .build();
-            HttpResponse<String> response;
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            res = mapper.readValue(response.body(), new TypeReference<>() {});
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Submitted trades: " + trades);
         return res;
     }
 

@@ -70,6 +70,12 @@ public class BitfinexController implements ExchangeController {
     }
 
     @Override
+    public List<TradeTO> getUnactiveOrders(String pair) {
+        LOG.info("Get unactive orders for " + pair);
+        return bitfinexAuthService.getUnactiveOrders(pair);
+    }
+
+    @Override
     public List<TradeTO> trade(List<TradeTO> defTrades) {
         LOG.info("Received trades: " + defTrades);
         return bitfinexAuthService.trade(defTrades);

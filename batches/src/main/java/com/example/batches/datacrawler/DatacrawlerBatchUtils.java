@@ -1,6 +1,6 @@
 package com.example.batches.datacrawler;
 
-import com.example.batches.PlutoTasks;
+import com.example.batches.PlutoBatchUtils;
 import com.example.pluto.PlutoConstants;
 import com.example.pluto.entities.InstrumentTO;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,9 +24,9 @@ import static com.example.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
 
 @Configuration
 @EnableBatchProcessing
-public class DatacrawlerTasks extends PlutoTasks {
+public class DatacrawlerBatchUtils extends PlutoBatchUtils {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DatacrawlerTasks.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DatacrawlerBatchUtils.class);
 
     public static void registerSpots(){
         LOG.info("Registering spot data");

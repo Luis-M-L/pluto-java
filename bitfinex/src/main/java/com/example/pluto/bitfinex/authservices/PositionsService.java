@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,8 @@ public class PositionsService {
 
     public List<PositionTO> updatePositions(TradeTO trade, BasketTO basket) {
         List<PositionTO> res = new ArrayList<>(2);
-        Double buyedQty = trade.getAmount() > 0 ? trade.getAmount() : new BigDecimal(trade.getAmount()).divide(trade.getPrice()).doubleValue();
-        Double selledQty = trade.getAmount() > 0 ? new BigDecimal(trade.getAmount()).divide(trade.getPrice()).doubleValue() : trade.getAmount();
+        Double buyedQty = trade.getAmount() > 0 ? trade.getAmount() : new BigDecimal(trade.getAmount()).divide(trade.getPrice()).setScale(10, RoundingMode.HALF_UP).doubleValue();
+        Double selledQty = trade.getAmount() > 0 ? new BigDecimal(trade.getAmount()).divide(trade.getPrice()).setScale(10, RoundingMode.HALF_UP).doubleValue() : trade.getAmount();
         String buyed = trade.getAmount() > 0 ? trade.getBase() : trade.getQuoted();
         String selled = trade.getAmount() > 0 ? trade.getQuoted() : trade.getBase();
         res.add(positionRepository.save(new PositionTO(null, basket, buyed, buyedQty)));
