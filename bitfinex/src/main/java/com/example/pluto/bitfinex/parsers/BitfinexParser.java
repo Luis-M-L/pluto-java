@@ -1,6 +1,6 @@
 package com.example.pluto.bitfinex.parsers;
 
-import com.example.pluto.entities.ExchangeError;
+import com.example.pluto.errors.ExchangeError;
 import com.example.pluto.entities.SpotTO;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeParser;

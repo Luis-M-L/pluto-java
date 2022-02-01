@@ -1,4 +1,4 @@
-package com.example.pluto.entities;
+package com.example.pluto.errors;
 
 public class ExchangeError {
 

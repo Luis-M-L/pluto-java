@@ -5,12 +5,11 @@ import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.authservices.PositionsService;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.TradeRepository;
-import com.example.pluto.entities.ExchangeError;
+import com.example.pluto.errors.ExchangeError;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +20,7 @@ public class Trader implements Callable<TradeTO> {
     private Logger LOG = LoggerFactory.getLogger(Trader.class);
 
     private static final String EXCHANGE_LIMIT = "EXCHANGE LIMIT";
+    private static final String EXCHANGE_MARKET = "EXCHANGE MARKET";
 
     private BitfinexAPIClient client;
     private TradeTO trade;

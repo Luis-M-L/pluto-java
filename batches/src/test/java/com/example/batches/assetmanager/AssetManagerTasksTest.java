@@ -18,7 +18,7 @@ import static org.junit.Assert.assertNotEquals;
 
 public class AssetManagerTasksTest {
 
-    private static MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
+    private static final MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static List<SpotTO> spotsList;
     public static Map<String, BigDecimal> spotsMap;

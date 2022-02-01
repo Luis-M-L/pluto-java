@@ -33,7 +33,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     }
 
     private static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
-        LOG.info("Submitting orders");
+        LOG.info("Building trades");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {
             String pair = k.getCurrency() + "BTC";
