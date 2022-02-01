@@ -58,7 +58,7 @@ public class Trader implements Callable<TradeTO> {
 
     private String buildBody() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{ \"type\": \"").append(EXCHANGE_LIMIT).append("\", ")
+        sb.append("{ \"type\": \"").append(EXCHANGE_MARKET).append("\", ")
             .append("\"symbol\": \"t").append(trade.getPair()).append("\", ")
             .append("\"price\": \"").append(trade.getPrice()).append("\", ")
             .append("\"amount\": \"").append(trade.getAmount()).append("\"}");

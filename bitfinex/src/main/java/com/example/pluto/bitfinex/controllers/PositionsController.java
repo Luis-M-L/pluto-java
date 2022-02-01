@@ -29,6 +29,12 @@ public class PositionsController {
         return positionService.getAllPositions();
     }
 
+    @GetMapping(value = "/last")
+    public List<PositionTO> getAllCcyLastPositions() {
+        LOG.info("Get last positions for all currencies");
+        return positionService.getAllCcyLastPositions();
+    }
+
     @GetMapping(value = "/basket/{basketId}")
     public List<PositionTO> getBasketPositions(@PathVariable(value = "basketId") Integer basketId) {
         LOG.info("get positions of basket " + basketId);

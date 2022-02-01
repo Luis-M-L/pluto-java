@@ -38,6 +38,12 @@ public class PositionsService {
         return all;
     }
 
+    public List<PositionTO> getAllCcyLastPositions() {
+        List<PositionTO> last = new ArrayList<>();
+        positionRepository.findLast().forEach(p -> last.add(p));
+        return last;
+    }
+
     public List<PositionTO> getBasketPositions(Integer basketId) {
         List<PositionTO> all = new ArrayList<>();
         List<PositionTO> basketPositions = positionRepository.findByBasket(basketId);

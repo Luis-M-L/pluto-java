@@ -68,8 +68,8 @@ public class PlutoBatchUtils {
         return AssetManagerTasks.spotsAsMap(spots);
     }
 
-    protected static List<PositionTO> getPositions() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_ALL.value()))).build();
+    protected static List<PositionTO> getCurrentPositions() {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_LAST.value()))).build();
         HttpResponse<String> response = null;
         List<PositionTO> positions = new ArrayList<>();
         try {

@@ -23,7 +23,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     public static void balance() {
         List<BasketTO> baskets = getBaskets();
         Map<String, BigDecimal> spots = getSpots();
-        List<PositionTO> positions = getPositions();
+        List<PositionTO> positions = getCurrentPositions();
         List<PositionTO> positionsByDesign = getPositionsByDesign(baskets, spots, getEquivalentSumByBasket(positions, spots));
 
         double threshold = 0.05;

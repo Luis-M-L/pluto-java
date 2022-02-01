@@ -29,6 +29,7 @@ public final class PlutoConstants {
         BITFINEX_UNACTIVE("/bitfinex/trade/unactive/"),
         POSITION_UPDATE("/position/update/"),
         POSITION_ALL("/position/all/"),
+        POSITION_LAST("/position/last/"),
         INSTRUMENTS("/instruments/");
 
         private String s;
