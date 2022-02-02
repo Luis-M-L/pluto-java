@@ -21,7 +21,7 @@ public class AssetManagerTasksTest {
     private static final MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static List<SpotTO> spotsList;
-    public static Map<String, BigDecimal> spotsMap;
+    public static Map<String, SpotTO> spotsMap;
     public static List<PositionTO> positions;
     public static Map<String, Map<String, BigDecimal>> equivalent;
     public static Map<String, BigDecimal> equivalentSum;
@@ -71,9 +71,13 @@ public class AssetManagerTasksTest {
     @Test
     public void testSpotsAsMap() {
         AssetManagerTasks amt = new AssetManagerTasks();
-        Map<String, BigDecimal> actual = amt.spotsAsMap(spotsList);
-
-        assertEquals(spotsMap, actual);
+        Map<String, SpotTO> actual = amt.spotsAsMap(spotsList);
+        assertEquals(spotsMap.get("BTC"), actual.get("BTC"));
+        assertEquals(spotsMap.get("BCH"), actual.get("BCH"));
+        assertEquals(spotsMap.get("ETH"), actual.get("ETH"));
+        assertEquals(spotsMap.get("XMR"), actual.get("XMR"));
+        assertEquals(spotsMap.get("ADA"), actual.get("ADA"));
+        assertEquals(spotsMap.get("IOT"), actual.get("IOT"));
     }
 
     @Test
@@ -163,12 +167,12 @@ public class AssetManagerTasksTest {
 
     private static void fillSpotsMap() {
         spotsMap = new HashMap<>(6);
-        spotsMap.put("BTC", new BigDecimal(1.0, mathContext));
-        spotsMap.put("ETH", new BigDecimal(0.11, mathContext));
-        spotsMap.put("BCH", new BigDecimal(0.019, mathContext));
-        spotsMap.put("XMR", new BigDecimal(0.005, mathContext));
-        spotsMap.put("ADA", new BigDecimal(0.0000441, mathContext));
-        spotsMap.put("IOT", new BigDecimal(0.0000215, mathContext));
+        spotsMap.put("BTC", new SpotTO("BTCBTC", 1.0));
+        spotsMap.put("BCH", new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.02, 0.018, 5000.0));
+        spotsMap.put("ETH", new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.12, 0.1, 10000.0));
+        spotsMap.put("XMR", new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0051, 0.0049, 3000.0));
+        spotsMap.put("ADA", new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0000442, 0.000044, 4000.0));
+        spotsMap.put("IOT", new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000023, 0.00002, 500.0));
     }
 
     private static void fillSpotsList() {

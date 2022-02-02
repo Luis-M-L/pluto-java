@@ -22,7 +22,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
 
     public static void balance() {
         List<BasketTO> baskets = getBaskets();
-        Map<String, BigDecimal> spots = getSpots();
+        Map<String, SpotTO> spots = getSpots();
         List<PositionTO> positions = getCurrentPositions();
         List<PositionTO> positionsByDesign = getPositionsByDesign(baskets, spots, getEquivalentSumByBasket(positions, spots));
 
@@ -32,13 +32,14 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         submitTradesAndUpdatePositions(buildTrades(deviations, spots));
     }
 
-    private static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, BigDecimal> spots) {
+    private static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotTO> spots) {
         LOG.info("Building trades");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {
             String pair = k.getCurrency() + "BTC";
-            BigDecimal price = spots.get(k.getCurrency());
             Double amount = - deviation.get(k).doubleValue();
+            Double priceAux = amount > 0.0 ? spots.get(k.getCurrency()).getBid() : spots.get(k.getCurrency()).getOffer();
+            BigDecimal price = BigDecimal.valueOf(priceAux);
             TradeTO trade = new TradeTO(pair, price, amount);
             if (!tradesByBaskets.containsKey(k.getBasket().getId())) {
                 tradesByBaskets.put(k.getBasket().getId(), new ArrayList<>());
@@ -107,12 +108,13 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return deviations bigger than threshold
      */
-    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, List<PositionTO> positions, Map<String, BigDecimal> spots) {
+    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, List<PositionTO> positions, Map<String, SpotTO> spots) {
         boolean proceed = false;
         Map<String, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
         Map<PositionTO, BigDecimal> filtered = new HashMap<>();
         for (PositionTO p : deviations.keySet()) {
-            BigDecimal deviationBtcEq = deviations.get(p).multiply(spots.get(p.getCurrency()));
+            BigDecimal price = BigDecimal.valueOf(spots.get(p.getCurrency()).getMid());
+            BigDecimal deviationBtcEq = deviations.get(p).multiply(price);
             BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket().getLabel()), mathContext);
             filtered.put(p, deviations.get(p));
             if (deviationOverSum.abs().doubleValue() > threshold) {
@@ -169,7 +171,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param sums addition in base currency (BTC) of all the positions in a basket
      * @return the positions that we should have
      */
-    public static List<PositionTO> getPositionsByDesign(List<BasketTO> baskets, Map<String, BigDecimal> spots, Map<String, BigDecimal> sums) {
+    public static List<PositionTO> getPositionsByDesign(List<BasketTO> baskets, Map<String, SpotTO> spots, Map<String, BigDecimal> sums) {
         List<PositionTO> wished = new ArrayList<>();
         if (spots == null || spots.isEmpty()) {
             LOG.error("Could not get wished positions by design due to lack of spots");
@@ -180,7 +182,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
             BigDecimal sum = sums.get(basket.getLabel());
 
             for (WeightTO weight : basket.getWeights()) {
-                BigDecimal price = spots.get(weight.getCurrency());
+                BigDecimal price = BigDecimal.valueOf(spots.get(weight.getCurrency()).getMid());
                 BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
                 LOG.info("[weight]: "+weight+"[sum]: "+sum+"[price]: "+price);
                 BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
@@ -198,7 +200,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return
      */
-    public static Map<String, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+    public static Map<String, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, SpotTO> spots) {
         Map<String, Map<String, BigDecimal>> equivalent = turnPositionsIntoEquivalent(positions, spots);
 
         Map<String, BigDecimal> eq = new HashMap<>(equivalent.size());
@@ -225,12 +227,12 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return Map with values in base currency for each alt currency in each basket
      */
-    public static Map<String, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, BigDecimal> spots) {
+    public static Map<String, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, SpotTO> spots) {
         Map<String, Map<String, BigDecimal>> equivalent = new HashMap<>();
-        spots.put("BTC", new BigDecimal(1.0, mathContext));      // Base for equivalency
+        spots.put("BTC", new SpotTO("BTCBTC", 1.0));      // Base for equivalency
         for (PositionTO p : positions) {
             BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
-            BigDecimal price = spots.get(p.getCurrency());
+            BigDecimal price = BigDecimal.valueOf(spots.get(p.getCurrency()).getMid());
             BigDecimal eq;
             if (quantity == null || price == null) {
                 LOG.warn("Quantity or price null for pair " + p.getCurrency());
@@ -250,18 +252,18 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots list to be transformed
      * @return Map with basic info from the list
      */
-    public static Map<String, BigDecimal> spotsAsMap(List<SpotTO> spots) {
-        Map<String, BigDecimal> res = new HashMap<>();
+    public static Map<String, SpotTO> spotsAsMap(List<SpotTO> spots) {
+        Map<String, SpotTO> res = new HashMap<>();
         if (spots == null) {
             return res;
         }
         spots.forEach(s -> {
             if (s.getInstrument() != null && s.getInstrument().contains("BTC")){
-                res.putIfAbsent(s.getInstrument().replace("BTC", ""), new BigDecimal(s.getMid(), mathContext));
+                res.putIfAbsent(s.getInstrument().replace("BTC", ""), s);
             }
         });
 
-        res.putIfAbsent("BTC", new BigDecimal(1.0, mathContext));
+        res.putIfAbsent("BTC", new SpotTO("BTCBTC", 1.0));
         return res;
     }
 

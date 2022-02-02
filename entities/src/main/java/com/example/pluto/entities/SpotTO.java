@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 @Entity
 @Table(name = "PLUTO_SPOTS")
@@ -26,6 +27,13 @@ public class SpotTO {
     private Double volume;
 
     public SpotTO() {
+    }
+
+    public SpotTO(String instrument, Double mid) {
+        this.instrument = instrument;
+        this.bid = mid;
+        this.offer = mid;
+        setMid();
     }
 
     public SpotTO(String instrument, Timestamp timestamp, Double bid, Double offer, Double volume) {
@@ -98,6 +106,19 @@ public class SpotTO {
     public String toJSON() throws JsonProcessingException {
         ObjectMapper mapperObj = new ObjectMapper();
         return mapperObj.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SpotTO spotTO = (SpotTO) o;
+        return instrument.equals(spotTO.instrument) && Objects.equals(bid, spotTO.bid) && mid.equals(spotTO.mid) && Objects.equals(offer, spotTO.offer) && Objects.equals(volume, spotTO.volume);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(instrument, bid, mid, offer, volume);
     }
 
     @Override

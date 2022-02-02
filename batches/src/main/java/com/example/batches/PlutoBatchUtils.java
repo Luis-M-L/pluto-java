@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -52,7 +51,7 @@ public class PlutoBatchUtils {
         return baskets;
     }
 
-    protected static Map<String, BigDecimal> getSpots() {
+    protected static Map<String, SpotTO> getSpots() {
         HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.BITFINEX.value(), PlutoConstants.Path.BITFINEX_SPOTS.value()))).build();
         HttpResponse<String> response;
         List<SpotTO> spots = new ArrayList<>();
