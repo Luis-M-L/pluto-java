@@ -14,7 +14,7 @@ public interface PositionRepository extends CrudRepository<PositionTO, Long> {
     List<PositionTO> findByBasket(Integer basket);
 
     @Query(value = "SELECT a FROM PositionTO a WHERE a.currency = :buyed AND a.basket = :basket AND NOT EXISTS " +
-            "(SELECT b FROM PositionTO b WHERE a.currency = :buyed AND a.basket = :basket AND b.timestamp > a.timestamp)")
+            "(SELECT b FROM PositionTO b WHERE a.currency = b.currency AND a.basket = b.basket AND b.timestamp > a.timestamp)")
     PositionTO findLastByBasketCurrency(BasketTO basket, String buyed);
 
     @Query(value = "SELECT a FROM PositionTO a WHERE NOT EXISTS (SELECT b FROM PositionTO b WHERE b.currency = a.currency AND b.basket = a.basket AND b.timestamp > a.timestamp)")
