@@ -33,7 +33,13 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         submitTradesAndUpdatePositions(buildTrades(deviations, spots));
     }
 
-    private static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotTO> spots) {
+    /**
+     * Builds needed trades to undo deviations
+     * @param deviation Map<PositionTO, BigDecimal>
+     * @param spots Map<String, SpotTO> spots
+     * @return Map<Long, List<TradeTO>>
+     */
+    protected static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotTO> spots) {
         LOG.info("Building trades");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {

@@ -1,9 +1,7 @@
 package com.example.batches.assetmanager;
 
-import com.example.pluto.entities.BasketTO;
-import com.example.pluto.entities.PositionTO;
-import com.example.pluto.entities.SpotTO;
-import com.example.pluto.entities.WeightTO;
+import com.example.pluto.entities.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +10,9 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 public class AssetManagerTasksTest {
 
@@ -106,6 +104,27 @@ public class AssetManagerTasksTest {
 
         BigDecimal expected = new BigDecimal(positions.get(0).getQuantity(), mathContext).setScale(10, RoundingMode.HALF_UP);
         assertEquals(expected, position);
+    }
+
+    @Test
+    public void testBuildTrades() {
+        AssetManagerTasks amt = new AssetManagerTasks();
+        Map<PositionTO, BigDecimal> localDeviation = new HashMap<>(1);
+        PositionTO iotPosition = positions.stream().filter(p -> "IOT".equals(p.getCurrency())).collect(Collectors.toList()).iterator().next();
+        localDeviation.put(iotPosition, new BigDecimal(4.0));
+        Map<Long, List<TradeTO>> trades = amt.buildTrades(localDeviation, spotsMap);
+
+        Assertions.assertTrue(trades.get(iotPosition.getBasket().getId()).size() == 1);
+
+        localDeviation.put(iotPosition, new BigDecimal(3.0));
+        Map<Long, List<TradeTO>> trades2 = amt.buildTrades(localDeviation, spotsMap);
+        Assertions.assertTrue(trades2.get(iotPosition.getBasket().getId()).size() == 2);
+        double neto = 0.0;
+        for (TradeTO t : trades2.get(iotPosition.getBasket().getId())) {
+            neto += t.getAmount();
+        }
+        Assertions.assertEquals(-3.0, neto);
+
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {
