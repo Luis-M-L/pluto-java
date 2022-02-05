@@ -30,7 +30,7 @@ public interface ExchangeController {
     @PostMapping(value = "trade")
     List<TradeTO> trade(@RequestBody List<TradeTO> defTrades);
 
-    @PostMapping(value = "update")
+    @PostMapping(value = "posttrade")
     List<TradeTO> updateChangedTrades(@RequestBody(required = false) List<TradeTO> placed);
 
 }

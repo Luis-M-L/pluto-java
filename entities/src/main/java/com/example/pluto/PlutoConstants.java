@@ -1,10 +1,23 @@
 package com.example.pluto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class PlutoConstants {
 
-    public final static String HTTP_PREFIX = "http://";
-    public final static String HEADER_NAME_CONTENT_TYPE = "Content-Type";
-    public final static String HEADER_VALUE_APPLICATION_JSON = "application/json";
+    public static final String HTTP_PREFIX = "http://";
+    public static final String HEADER_NAME_CONTENT_TYPE = "Content-Type";
+    public static final String HEADER_VALUE_APPLICATION_JSON = "application/json";
+
+    public static final Map<String, Double> minAmounts = initializeMinAmounts();
+
+    private static Map<String, Double> initializeMinAmounts() {
+        Map<String, Double> ma = new HashMap<>(1);
+        ma.put("IOT", 4.0);
+        ma.put("XMR", 0.02);
+        ma.put("BTC", 0.0);
+        return ma;
+    }
 
     public enum Socket {
         ORDENANZA("localhost:48557"),
@@ -24,6 +37,7 @@ public final class PlutoConstants {
     public enum Path {
         BASKET_ALL("/basket/all/"),
         BITFINEX_TRADE("/bitfinex/trade/"),
+        BITFINEX_POSTTRADE("/bitfinex/posttrade/"),
         BITFINEX_SPOTS("/bitfinex/spots/"),
         BITFINEX_SPOT("/bitfinex/spot/"),
         BITFINEX_UNACTIVE("/bitfinex/trade/unactive/"),
@@ -42,4 +56,6 @@ public final class PlutoConstants {
             return s;
         }
     }
+
+
 }

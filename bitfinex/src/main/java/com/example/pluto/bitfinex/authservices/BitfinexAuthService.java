@@ -12,16 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -132,10 +124,17 @@ public class BitfinexAuthService {
         return filtered;
     }
 
-    public List<TradeTO> updateIfChanged(List<TradeTO> placed) {
-        List<TradeTO> updated = new ArrayList<>();
-        tradeRepository.saveAll(filterUnactive(placed)).forEach(t -> updated.add(t));
-        return updated;
+    public List<TradeTO> updateChanged(List<TradeTO> placed) {
+        List<Long> ids = new ArrayList<>(placed.size());
+        placed.forEach(p -> ids.add(p.getId()));
+        Iterable<TradeTO> bbddTrades = tradeRepository.findAllById(ids);
+        bbddTrades.forEach(bt -> {
+            Set<TradeTO> btInPlaced = placed.stream().filter(p -> p.getExchangeId().equals(bt.getExchangeId())).collect(Collectors.toSet());
+            TradeTO source = btInPlaced == null ? null : btInPlaced.iterator().next();
+            bt.setPrice(source.getPrice());
+            bt.setStatus(source.getStatus());
+        });
+        return (List) tradeRepository.saveAll(bbddTrades);
     }
 
 }

@@ -83,7 +83,7 @@ public class PlutoBatchUtils {
         return positions;
     }
 
-    protected static List<TradeTO> getUnactiveOrders(String pair) {
+    protected static List<TradeTO> getUnactiveOrders(final String pair) {
         HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_UNACTIVE.value(), pair))).build();
         HttpResponse<String> response = null;
         List<TradeTO> unactive = new ArrayList<>();
@@ -99,7 +99,7 @@ public class PlutoBatchUtils {
         return unactive;
     }
 
-    protected static List<TradeTO> callTrader(List<TradeTO> trades) {
+    protected static List<TradeTO> callTrader(final List<TradeTO> trades) {
         LOG.info("trader calling");
         ObjectMapper mapper = new ObjectMapper();
         List<TradeTO> res = null;
@@ -123,12 +123,33 @@ public class PlutoBatchUtils {
         return res;
     }
 
-    protected static void updatePositions(Long basketId, List<TradeTO> trades) {
+    protected static void updatePositions(final Long basketId, final List<TradeTO> trades) {
         LOG.info("Updating positions");
         ObjectMapper mapper = new ObjectMapper();
         List<PositionTO> res = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_UPDATE.value(), String.valueOf(basketId))))
+                    .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
+                    .build();
+            HttpResponse<String> response;
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            res = mapper.readValue(response.body(), new TypeReference<>() {});
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected static void updateRecentTrades(final List<TradeTO> trades) {
+        LOG.info("Updating trades");
+        ObjectMapper mapper = new ObjectMapper();
+        List<PositionTO> res = null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_POSTTRADE.value())))
                     .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(trades)))
                     .build();

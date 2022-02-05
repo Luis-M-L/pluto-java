@@ -1,6 +1,7 @@
 package com.example.batches.assetmanager;
 
 import com.example.batches.PlutoBatchUtils;
+import com.example.pluto.PlutoConstants;
 import com.example.pluto.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +37,38 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         LOG.info("Building trades");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {
-            String pair = k.getCurrency() + "BTC";
-            Double amount = - deviation.get(k).doubleValue();
-            Double priceAux = amount > 0.0 ? spots.get(k.getCurrency()).getBid() : spots.get(k.getCurrency()).getOffer();
-            BigDecimal price = BigDecimal.valueOf(priceAux);
-            TradeTO trade = new TradeTO(pair, price, amount);
+            TradeTO trade = buildTrade(k, deviation.get(k), spots.get(k.getCurrency()));
             if (!tradesByBaskets.containsKey(k.getBasket().getId())) {
                 tradesByBaskets.put(k.getBasket().getId(), new ArrayList<>());
             }
             if (!"BTCBTC".equals(trade.getPair())) {
-                tradesByBaskets.get(k.getBasket().getId()).add(trade);
+                List<TradeTO> pairTrades = tradesByBaskets.get(k.getBasket().getId());
+                if (PlutoConstants.minAmounts.get(trade.getBase()) > Math.abs(trade.getAmount())) {
+                    Double recalculated = PlutoConstants.minAmounts.get(trade.getBase()) * 2.0 + trade.getAmount();
+                    trade.setAmount(recalculated);
+                    TradeTO complementary = buildTrade(k, BigDecimal.valueOf(PlutoConstants.minAmounts.get(trade.getBase()) * 2.0), spots.get(k.getCurrency()));
+                    pairTrades.add(complementary);
+                }
+                pairTrades.add(trade);
             }
         }
         return tradesByBaskets;
+
+    }
+
+    /**
+     * Build one trade from parameters
+     * @param deviation BigDecimal
+     * @param spot SpotTO
+     * @param k PositionTO
+     * @return TradeTO
+     */
+    private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotTO spot) {
+        String pair = k.getCurrency() + "BTC";
+        Double amount = - deviation.doubleValue();
+        Double priceAux = amount < 0.0 ? spot.getBid() : spot.getOffer();
+        BigDecimal price = BigDecimal.valueOf(priceAux);
+        return new TradeTO(pair, price, amount);
     }
 
     /**
@@ -76,6 +96,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
             }
             return waitToBeFilled(placed);
         } else {
+            updateRecentTrades(filled);
             return filled;
         }
     }
@@ -94,6 +115,8 @@ public class AssetManagerTasks extends PlutoBatchUtils {
             }
             unactive.get(pair).forEach(u -> {
                 if (u.getExchangeId() != null && u.getExchangeId().equals(p.getExchangeId())) {
+                    u.setId(p.getId());
+                    u.setIssuedTimestamp(p.getIssuedTimestamp());
                     filtered.add(u);
                 }
             });

@@ -86,7 +86,7 @@ public class BitfinexController implements ExchangeController {
         if (placed == null) {
             return new ArrayList<>(0);
         }
-        return bitfinexAuthService.updateIfChanged(placed);
+        return bitfinexAuthService.updateChanged(placed);
     }
 
     @GetMapping(value = "user")
