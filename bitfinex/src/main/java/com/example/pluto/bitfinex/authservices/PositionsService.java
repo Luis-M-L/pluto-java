@@ -55,18 +55,36 @@ public class PositionsService {
 
     public List<PositionTO> updatePositions(TradeTO trade, BasketTO basket) {
         List<PositionTO> res = new ArrayList<>(2);
-        Double buyedQty = trade.getAmount() > 0 ? trade.getAmount() : - new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).doubleValue();
-        Double selledQty = trade.getAmount() > 0 ? - new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).doubleValue() : trade.getAmount();
-        String buyed = trade.getAmount() > 0 ? trade.getBase() : trade.getQuoted();
-        String selled = trade.getAmount() > 0 ? trade.getQuoted() : trade.getBase();
-        res.add(positionRepository.save(new PositionTO(null, basket, buyed, buyedQty + getLastAmount(basket, buyed))));
-        res.add(positionRepository.save(new PositionTO(null, basket, selled, selledQty + getLastAmount(basket, selled))));
+
+        BigDecimal boughtQty;
+        BigDecimal soldQty;
+        String bought;
+        String sold;
+
+        if (trade.getAmount() > 0) {
+            boughtQty = new BigDecimal(trade.getAmount());
+            soldQty = new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
+            bought = trade.getBase();
+            sold = trade.getQuoted();
+        } else {
+            boughtQty = new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
+            soldQty = new BigDecimal(trade.getAmount());
+            bought = trade.getQuoted();
+            sold = trade.getBase();
+        }
+        BigDecimal boughtCommission = BigDecimal.valueOf(0.002).multiply(boughtQty, mathContext).setScale(10, RoundingMode.HALF_UP);
+
+        BigDecimal finallyBought = boughtQty.add(getLastAmount(basket, bought)).subtract(boughtCommission);
+        BigDecimal finallySold = soldQty.add(getLastAmount(basket, sold));
+
+        res.add(positionRepository.save(new PositionTO(null, basket, bought, finallyBought)));
+        res.add(positionRepository.save(new PositionTO(null, basket, sold, finallySold)));
         return res;
     }
 
-    private Double getLastAmount(BasketTO basket, String buyed) {
+    private BigDecimal getLastAmount(BasketTO basket, String buyed) {
         PositionTO last = positionRepository.findLastByBasketCurrency(basket, buyed);
-        return last != null && last.getQuantity() != null ? last.getQuantity() : 0.0;
+        return last != null && last.getQuantity() != null ? last.getQuantity() : BigDecimal.ZERO;
     }
 
     public List<PositionTO> updatePositions(Long basketId, List<TradeTO> trades) {
