@@ -3,6 +3,7 @@ package com.example.pluto.entities;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +22,8 @@ public class PositionTO {
 
     private String currency;
 
-    private Double quantity;
+    @Column(precision = 15, scale = 8)
+    private BigDecimal quantity;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
@@ -30,7 +32,7 @@ public class PositionTO {
         timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
-    public PositionTO(Long id, BasketTO basket, String currency, Double quantity) {
+    public PositionTO(Long id, BasketTO basket, String currency, BigDecimal quantity) {
         this.id = id;
         this.basket = basket;
         this.currency = currency;
@@ -62,11 +64,11 @@ public class PositionTO {
         this.currency = currency;
     }
 
-    public Double getQuantity() {
+    public BigDecimal getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Double quantity) {
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
 

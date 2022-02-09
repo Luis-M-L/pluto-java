@@ -147,7 +147,7 @@ public class PlutoBatchUtils {
     protected static void updateRecentTrades(final List<TradeTO> trades) {
         LOG.info("Updating trades");
         ObjectMapper mapper = new ObjectMapper();
-        List<PositionTO> res = null;
+        List<TradeTO> res = null;
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_POSTTRADE.value())))
                     .header(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)

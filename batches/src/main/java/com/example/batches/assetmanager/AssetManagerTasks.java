@@ -71,10 +71,10 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      */
     private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotTO spot) {
         String pair = k.getCurrency() + "BTC";
-        Double amount = - deviation.doubleValue();
-        Double priceAux = amount < 0.0 ? spot.getBid() : spot.getOffer();
+        BigDecimal amount = deviation.negate();
+        Double priceAux = amount.doubleValue() < 0.0 ? spot.getBid() : spot.getOffer();
         BigDecimal price = BigDecimal.valueOf(priceAux);
-        return new TradeTO(pair, price, amount);
+        return new TradeTO(pair, price, amount.doubleValue());
     }
 
     /**
@@ -215,7 +215,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
                 BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
                 LOG.info("[weight]: "+weight+"[sum]: "+sum+"[price]: "+price);
                 BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
-                PositionTO position = new PositionTO(null, basket, weight.getCurrency(), q.doubleValue());
+                PositionTO position = new PositionTO(null, basket, weight.getCurrency(), q);
 
                 wished.add(position);
             }
@@ -260,7 +260,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         Map<String, Map<String, BigDecimal>> equivalent = new HashMap<>();
         spots.put("BTC", new SpotTO("BTCBTC", 1.0));      // Base for equivalency
         for (PositionTO p : positions) {
-            BigDecimal quantity = new BigDecimal(p.getQuantity(), mathContext);
+            BigDecimal quantity = p.getQuantity();
             BigDecimal price = BigDecimal.valueOf(spots.get(p.getCurrency()).getMid());
             BigDecimal eq;
             if (quantity == null || price == null) {
@@ -308,7 +308,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         }
         positions.forEach(p -> {
             String currency = p.getCurrency();
-            Double quantity = p.getQuantity();
+            Double quantity = p.getQuantity().doubleValue();
             if (res.containsKey(p.getBasket().getLabel())) {
                 res.get(p.getBasket().getLabel()).put(currency, quantity);
             } else {
