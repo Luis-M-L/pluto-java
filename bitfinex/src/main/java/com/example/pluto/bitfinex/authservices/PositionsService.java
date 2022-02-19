@@ -61,14 +61,14 @@ public class PositionsService {
         String bought;
         String sold;
 
-        if (trade.getAmount() > 0) {
-            boughtQty = new BigDecimal(trade.getAmount());
-            soldQty = new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
+        if (BigDecimal.ZERO.compareTo(trade.getAmount()) == -1) {
+            boughtQty = trade.getAmount();
+            soldQty = trade.getAmount().multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
             bought = trade.getBase();
             sold = trade.getQuoted();
         } else {
-            boughtQty = new BigDecimal(trade.getAmount()).multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
-            soldQty = new BigDecimal(trade.getAmount());
+            boughtQty = trade.getAmount().multiply(trade.getPrice(), mathContext).setScale(10, RoundingMode.HALF_UP).negate(mathContext);
+            soldQty = trade.getAmount();
             bought = trade.getQuoted();
             sold = trade.getBase();
         }

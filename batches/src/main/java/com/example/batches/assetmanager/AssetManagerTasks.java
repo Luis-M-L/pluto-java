@@ -1,7 +1,6 @@
 package com.example.batches.assetmanager;
 
 import com.example.batches.PlutoBatchUtils;
-import com.example.pluto.PlutoConstants;
 import com.example.pluto.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +48,6 @@ public class AssetManagerTasks extends PlutoBatchUtils {
             }
             if (!"BTCBTC".equals(trade.getPair())) {
                 List<TradeTO> pairTrades = tradesByBaskets.get(k.getBasket().getId());
-                if (PlutoConstants.minAmounts.get(trade.getBase()) > Math.abs(trade.getAmount())) {
-                    Double recalculated = PlutoConstants.minAmounts.get(trade.getBase()) * 2.0 + trade.getAmount();
-                    trade.setAmount(recalculated);
-                    TradeTO complementary = buildTrade(k, BigDecimal.valueOf(PlutoConstants.minAmounts.get(trade.getBase()) * 2.0), spots.get(k.getCurrency()));
-                    pairTrades.add(complementary);
-                }
                 pairTrades.add(trade);
             }
         }
@@ -72,9 +65,10 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotTO spot) {
         String pair = k.getCurrency() + "BTC";
         BigDecimal amount = deviation.negate();
+        // Price da igual porque usaremos operaciones market, no limit
         Double priceAux = amount.doubleValue() < 0.0 ? spot.getBid() : spot.getOffer();
         BigDecimal price = BigDecimal.valueOf(priceAux);
-        return new TradeTO(pair, price, amount.doubleValue());
+        return new TradeTO(pair, price, amount);
     }
 
     /**
@@ -83,8 +77,8 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      */
     private static void submitTradesAndUpdatePositions(Map<Long, List<TradeTO>> tradesByBaskets) {
         tradesByBaskets.forEach((k, v) -> {
-            List<TradeTO> sells = v.stream().filter(t -> t.getAmount() < 0).collect(Collectors.toList());
-            List<TradeTO> buys = v.stream().filter(t -> t.getAmount() > 0).collect(Collectors.toList());
+            List<TradeTO> sells = v.stream().filter(t -> BigDecimal.ZERO.compareTo(t.getAmount()) == 1).collect(Collectors.toList());
+            List<TradeTO> buys = v.stream().filter(t -> BigDecimal.ZERO.compareTo(t.getAmount()) == -1).collect(Collectors.toList());
             List<TradeTO> filled = new ArrayList<>(v.size());
             filled.addAll(waitToBeFilled(callTrader(sells)));
             filled.addAll(waitToBeFilled(callTrader(buys)));

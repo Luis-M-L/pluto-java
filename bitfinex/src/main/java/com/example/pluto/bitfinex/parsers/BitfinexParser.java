@@ -82,7 +82,7 @@ public class BitfinexParser implements ExchangeParser {
         tradeTO.setEffectiveTimestamp(new Timestamp(innerArray.getJsonNumber(4).longValue()));
         tradeTO.setPair(innerArray.getString(3).substring(1));
         tradeTO.setPrice(innerArray.getJsonNumber(16).bigDecimalValue());
-        tradeTO.setAmount(innerArray.getJsonNumber(7).doubleValue());
+        tradeTO.setAmount((BigDecimal) innerArray.getJsonNumber(7));
         String fillingReport = innerArray.getString(13);
         updateTradeWithFillInfo(tradeTO, fillingReport);
         return tradeTO;

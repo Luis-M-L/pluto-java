@@ -1,7 +1,6 @@
 package com.example.batches.assetmanager;
 
 import com.example.pluto.entities.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -102,7 +101,7 @@ public class AssetManagerTasksTest {
         AssetManagerTasks amt = new AssetManagerTasks();
         BigDecimal position = amt.getPositionValue(amt.positionsAsMap(positions), positions.get(0));
 
-        BigDecimal expected = new BigDecimal(positions.get(0).getQuantity(), mathContext).setScale(10, RoundingMode.HALF_UP);
+        BigDecimal expected = positions.get(0).getQuantity().setScale(10, RoundingMode.HALF_UP);
         assertEquals(expected, position);
     }
 
@@ -111,20 +110,10 @@ public class AssetManagerTasksTest {
         AssetManagerTasks amt = new AssetManagerTasks();
         Map<PositionTO, BigDecimal> localDeviation = new HashMap<>(1);
         PositionTO iotPosition = positions.stream().filter(p -> "IOT".equals(p.getCurrency())).collect(Collectors.toList()).iterator().next();
-        localDeviation.put(iotPosition, new BigDecimal(4.0));
+        localDeviation.put(iotPosition, new BigDecimal(8.0).setScale(10));
         Map<Long, List<TradeTO>> trades = amt.buildTrades(localDeviation, spotsMap);
 
-        Assertions.assertTrue(trades.get(iotPosition.getBasket().getId()).size() == 1);
-
-        localDeviation.put(iotPosition, new BigDecimal(3.0));
-        Map<Long, List<TradeTO>> trades2 = amt.buildTrades(localDeviation, spotsMap);
-        Assertions.assertTrue(trades2.get(iotPosition.getBasket().getId()).size() == 2);
-        double neto = 0.0;
-        for (TradeTO t : trades2.get(iotPosition.getBasket().getId())) {
-            neto += t.getAmount();
-        }
-        Assertions.assertEquals(-3.0, neto);
-
+        assertEquals(new BigDecimal(8.0).setScale(10).negate(), trades.get(iotPosition.getBasket().getId()).get(0).getAmount());
     }
 
     private static void fillBaskets(BasketTO basketBasica, BasketTO basketGrowth) {
@@ -162,11 +151,11 @@ public class AssetManagerTasksTest {
                 new WeightTO(null, "IOT", 0.1, null)
         );
         BasketTO basketGrowth = new BasketTO(8L, "growth", weightsGrowth);
-        positions.add(new PositionTO(4L, basketGrowth, "IOT", 4650.0));
-        positions.add(new PositionTO(5L, basketGrowth, "ETH", 1.82));
-        positions.add(new PositionTO(6L, basketGrowth, "XMR", 50.0));
-        positions.add(new PositionTO(7L, basketGrowth, "ADA", 6800.0));
-        positions.add(new PositionTO(8L, basketGrowth, "BTC", 0.15));
+        positions.add(new PositionTO(4L, basketGrowth, "IOT", BigDecimal.valueOf(4650.0)));
+        positions.add(new PositionTO(5L, basketGrowth, "ETH", BigDecimal.valueOf(1.82)));
+        positions.add(new PositionTO(6L, basketGrowth, "XMR", BigDecimal.valueOf(50.0)));
+        positions.add(new PositionTO(7L, basketGrowth, "ADA", BigDecimal.valueOf(6800.0)));
+        positions.add(new PositionTO(8L, basketGrowth, "BTC", BigDecimal.valueOf(0.15)));
         return basketGrowth;
     }
 
@@ -178,42 +167,42 @@ public class AssetManagerTasksTest {
                 new WeightTO(null, "XMR", 0.05, null)
         );
         BasketTO basketBasica = new BasketTO(9L, "basica", weightsBasica);
-        positions.add(new PositionTO(1L, basketBasica, "BTC", 0.5));
-        positions.add(new PositionTO(2L, basketBasica, "ETH", 0.1));
-        positions.add(new PositionTO(3L, basketBasica, "XMR", 0.033));
+        positions.add(new PositionTO(1L, basketBasica, "BTC", BigDecimal.valueOf(0.5)));
+        positions.add(new PositionTO(2L, basketBasica, "ETH", BigDecimal.valueOf(0.1)));
+        positions.add(new PositionTO(3L, basketBasica, "XMR", BigDecimal.valueOf(0.033)));
         return basketBasica;
     }
 
     private static void fillSpotsMap() {
         spotsMap = new HashMap<>(6);
         spotsMap.put("BTC", new SpotTO("BTCBTC", 1.0));
-        spotsMap.put("BCH", new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.02, 0.018, 5000.0));
-        spotsMap.put("ETH", new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.12, 0.1, 10000.0));
-        spotsMap.put("XMR", new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0051, 0.0049, 3000.0));
-        spotsMap.put("ADA", new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0000442, 0.000044, 4000.0));
-        spotsMap.put("IOT", new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000023, 0.00002, 500.0));
+        spotsMap.put("BCH", new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.018, 0.02, 5000.0));
+        spotsMap.put("ETH", new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.1, 0.12, 10000.0));
+        spotsMap.put("XMR", new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0049, 0.0051, 3000.0));
+        spotsMap.put("ADA", new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000044, 0.0000442, 4000.0));
+        spotsMap.put("IOT", new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.00002, 0.000023, 500.0));
     }
 
     private static void fillSpotsList() {
         spotsList = new ArrayList<>(6);
-        spotsList.add(new SpotTO("ETHIOT", Timestamp.valueOf("2021-10-02 18:35:00"), 0.000377, 0.000375, 200.0));
-        spotsList.add(new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.12, 0.1, 10000.0));
-        spotsList.add(new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.02, 0.018, 5000.0));
-        spotsList.add(new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0051, 0.0049, 3000.0));
-        spotsList.add(new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0000442, 0.000044, 4000.0));
-        spotsList.add(new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000023, 0.00002, 500.0));
+        spotsList.add(new SpotTO("ETHIOT", Timestamp.valueOf("2021-10-02 18:35:00"), 0.000375, 0.000377, 200.0));
+        spotsList.add(new SpotTO("ETHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.1, 0.12, 10000.0));
+        spotsList.add(new SpotTO("BCHBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.018, 0.02, 5000.0));
+        spotsList.add(new SpotTO("XMRBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.0049, 0.0051, 3000.0));
+        spotsList.add(new SpotTO("ADABTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.000044, 0.0000442, 4000.0));
+        spotsList.add(new SpotTO("IOTBTC", Timestamp.valueOf("2020-08-17 21:45:00"), 0.00002, 0.000023, 500.0));
     }
 
     private void fillWished() {
         wished = new ArrayList<>(8);
-        wished.add(new PositionTO(null, baskets.get(0), "BTC", 0.408932));
-        wished.add(new PositionTO(null, baskets.get(0), "ETH", 0.6970431818));
-        wished.add(new PositionTO(null, baskets.get(0), "XMR", 5.11165));
-        wished.add(new PositionTO(null, baskets.get(1), "BTC", 0.15000825));
-        wished.add(new PositionTO(null, baskets.get(1), "ETH", 1.8182818182));
-        wished.add(new PositionTO(null, baskets.get(1), "XMR", 50.00275));
-        wished.add(new PositionTO(null, baskets.get(1), "ADA", 6803.0952380952));
-        wished.add(new PositionTO(null, baskets.get(1), "IOT", 4651.4186046512));
+        wished.add(new PositionTO(null, baskets.get(0), "BTC", BigDecimal.valueOf(0.408932).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(0), "ETH", BigDecimal.valueOf(0.6970431818).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(0), "XMR", BigDecimal.valueOf(5.11165).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(1), "BTC", BigDecimal.valueOf(0.15000825).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(1), "ETH", BigDecimal.valueOf(1.8182818182).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(1), "XMR", BigDecimal.valueOf(50.00275).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(1), "ADA", BigDecimal.valueOf(6803.0952380952).setScale(10)));
+        wished.add(new PositionTO(null, baskets.get(1), "IOT", BigDecimal.valueOf(4651.4186046512).setScale(10)));
     }
 
     private void fillDeviations() {

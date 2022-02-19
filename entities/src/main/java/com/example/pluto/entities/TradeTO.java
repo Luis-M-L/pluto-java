@@ -35,20 +35,20 @@ public class TradeTO {
 
     private String pair;
     private BigDecimal price;
-    private Double amount;
+    private BigDecimal amount;
     private String status;
 
     public TradeTO() {
     }
 
-    public TradeTO(String pair, BigDecimal price, Double amount) {
+    public TradeTO(String pair, BigDecimal price, BigDecimal amount) {
         this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         this.pair = pair;
         this.price = price;
         this.amount = amount;
     }
 
-    public TradeTO(Timestamp issuedTimestamp, Timestamp effectiveTimestamp, String pair, Double amount) {
+    public TradeTO(Timestamp issuedTimestamp, Timestamp effectiveTimestamp, String pair, BigDecimal amount) {
         this.issuedTimestamp = issuedTimestamp;
         this.effectiveTimestamp = effectiveTimestamp;
         this.pair = pair;
@@ -103,11 +103,11 @@ public class TradeTO {
         this.price = price;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
