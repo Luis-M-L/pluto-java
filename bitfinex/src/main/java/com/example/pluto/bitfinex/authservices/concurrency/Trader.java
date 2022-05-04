@@ -1,5 +1,6 @@
 package com.example.pluto.bitfinex.authservices.concurrency;
 
+import com.example.pluto.PlutoConstants;
 import com.example.pluto.bitfinex.BitfinexAPIClient;
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.authservices.PositionsService;
@@ -18,9 +19,6 @@ import java.util.concurrent.Callable;
 public class Trader implements Callable<TradeTO> {
 
     private Logger LOG = LoggerFactory.getLogger(Trader.class);
-
-    private static final String EXCHANGE_LIMIT = "EXCHANGE LIMIT";
-    private static final String EXCHANGE_MARKET = "EXCHANGE MARKET";
 
     private BitfinexAPIClient client;
     private TradeTO trade;
@@ -58,7 +56,7 @@ public class Trader implements Callable<TradeTO> {
 
     private String buildBody() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{ \"type\": \"").append(EXCHANGE_MARKET).append("\", ")
+        sb.append("{ \"type\": \"").append(PlutoConstants.OrderType.EXCHANGE_MARKET.value()).append("\", ")
             .append("\"symbol\": \"t").append(trade.getPair()).append("\", ")
             .append("\"price\": \"").append(trade.getPrice()).append("\", ")
             .append("\"amount\": \"").append(trade.getAmount()).append("\"}");

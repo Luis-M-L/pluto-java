@@ -9,14 +9,29 @@ public final class PlutoConstants {
     public static final String HEADER_NAME_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_VALUE_APPLICATION_JSON = "application/json";
 
-    public static final Map<String, Double> minAmounts = initializeMinAmounts();
+    public static final Map<String, Double> minAmount = initializeMinAmount();
 
-    private static Map<String, Double> initializeMinAmounts() {
+    private static Map<String, Double> initializeMinAmount() {
         Map<String, Double> ma = new HashMap<>(1);
         ma.put("IOT", 4.0);
         ma.put("XMR", 0.02);
         ma.put("BTC", 0.0);
         return ma;
+    }
+
+    public enum OrderType {
+        EXCHANGE_LIMIT("EXCHANGE LIMIT"),
+        EXCHANGE_MARKET("EXCHANGE MARKET");
+
+        private String e;
+
+        OrderType(String e) {
+            this.e = e;
+        }
+
+        public String value() {
+            return e;
+        }
     }
 
     public enum Socket {

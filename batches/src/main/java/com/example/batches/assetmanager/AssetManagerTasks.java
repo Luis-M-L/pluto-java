@@ -51,8 +51,8 @@ public class AssetManagerTasks extends PlutoBatchUtils {
                 pairTrades.add(trade);
             }
         }
+        LOG.debug("Trades built: " + tradesByBaskets);
         return tradesByBaskets;
-
     }
 
     /**
@@ -90,7 +90,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         List<TradeTO> filled = filterUnactive(placed);
         if (filled.isEmpty() && placed != null && !placed.isEmpty()) {
             try {
-                Thread.sleep(15000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
