@@ -4,7 +4,7 @@ import com.example.batches.assetmanager.AssetManagerTasks;
 import com.example.pluto.PlutoConstants;
 import com.example.pluto.entities.BasketTO;
 import com.example.pluto.entities.PositionTO;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -13,13 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.example.pluto.PlutoConstants.*;
 
@@ -51,10 +50,16 @@ public class PlutoBatchUtils {
         return baskets;
     }
 
-    protected static Map<String, SpotTO> getSpots() {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.BITFINEX.value(), PlutoConstants.Path.BITFINEX_SPOTS.value()))).build();
+    public static Map<String, SpotEntity> getSpots(Set<String> instruments) {
+        StringBuilder sb = new StringBuilder();
+        instruments.forEach(i -> sb.append(",").append(i));
+        sb.delete(0, 1);
+        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.BITFINEX.value(),
+                                                                            PlutoConstants.Path.BITFINEX_SPOTS.value(),
+                                                                            sb.toString())))
+                                        .build();
         HttpResponse<String> response;
-        List<SpotTO> spots = new ArrayList<>();
+        List<SpotEntity> spots = new LinkedList<>();
         try {
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
             spots = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
@@ -67,19 +72,21 @@ public class PlutoBatchUtils {
         return AssetManagerTasks.spotsAsMap(spots);
     }
 
-    protected static List<PositionTO> getCurrentPositions() {
+    public static Map<String, BigDecimal> getPositions() {
         HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.POSITION_LAST.value()))).build();
         HttpResponse<String> response = null;
-        List<PositionTO> positions = new ArrayList<>();
+        List<PositionTO> positionTOList = new LinkedList<>();
         try {
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            positions = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
+            positionTOList = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        LOG.info("Got positions: " + positions);
+        LOG.info("Got positions: " + positionTOList);
+        Map<String, BigDecimal> positions = new HashMap<>(positionTOList.size());
+        positionTOList.forEach(p -> positions.put(p.getCurrency(), p.getQuantity()));
         return positions;
     }
 

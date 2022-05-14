@@ -4,11 +4,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-public class SpotTOTest {
+public class SpotEntityTest {
 
-    SpotTO spot;
+    SpotEntity spot;
 
     private String instrument = "BTCUSD";
     private Timestamp timestamp = Timestamp.valueOf("2021-06-26 12:04:30");
@@ -19,16 +20,16 @@ public class SpotTOTest {
 
     @Before
     public void setUp(){
-        spot = new SpotTO();
+        spot = new SpotEntity();
     }
 
     @Test
     public void testConstructors(){
-        SpotTO spot1 = new SpotTO();
-        SpotTO spot2 = new SpotTO(instrument, timestamp, 1.0, 2.0, volume);
+        SpotEntity spot1 = new SpotEntity();
+        SpotEntity spot2 = new SpotEntity(instrument, timestamp, BigDecimal.ONE, BigDecimal.valueOf(2.0), BigDecimal.valueOf(volume));
 
-        Assert.assertEquals(SpotTO.class, spot1.getClass());
-        Assert.assertEquals(SpotTO.class, spot2.getClass());
+        Assert.assertEquals(SpotEntity.class, spot1.getClass());
+        Assert.assertEquals(SpotEntity.class, spot2.getClass());
 
         Assert.assertNull(spot1.getBid());
         Assert.assertNull(spot1.getOffer());
@@ -50,7 +51,7 @@ public class SpotTOTest {
 
     @Test
     public void testGetSetBid(){
-        spot.setBid(bid);
+        spot.setBid(BigDecimal.valueOf(bid));
         Assert.assertEquals(bid, spot.getBid());
         Assert.assertEquals(null, spot.getMid());
         Assert.assertEquals(null, spot.getOffer());
@@ -58,7 +59,7 @@ public class SpotTOTest {
 
     @Test
     public void testGetSetOffer(){
-        spot.setOffer(offer);
+        spot.setOffer(BigDecimal.valueOf(offer));
         Assert.assertEquals(null, spot.getBid());
         Assert.assertEquals(null, spot.getMid());
         Assert.assertEquals(offer, spot.getOffer());
@@ -66,8 +67,8 @@ public class SpotTOTest {
 
     @Test
     public void testGetSetMid(){
-        spot.setBid(bid);
-        spot.setOffer(offer);
+        spot.setBid(BigDecimal.valueOf(bid));
+        spot.setOffer(BigDecimal.valueOf(offer));
         Assert.assertEquals(bid, spot.getBid());
         Assert.assertEquals(mid, spot.getMid());
         Assert.assertEquals(offer, spot.getOffer());
@@ -75,7 +76,7 @@ public class SpotTOTest {
 
     @Test
     public void testGetSetVolume(){
-        spot.setVolume(volume);
+        spot.setVolume(BigDecimal.valueOf(volume));
         Assert.assertEquals(volume, spot.getVolume());
     }
 }

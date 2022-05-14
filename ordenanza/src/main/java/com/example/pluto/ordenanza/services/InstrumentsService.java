@@ -1,7 +1,7 @@
 package com.example.pluto.ordenanza.services;
 
 import com.example.pluto.entities.InstrumentTO;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.pluto.ordenanza.repositories.InstrumentRepository;
@@ -22,7 +22,7 @@ public class InstrumentsService {
     public InstrumentsService() {
     }
 
-    public void save(SpotTO spot) {
+    public void save(SpotEntity spot) {
         spotRepository.save(spot);
     }
 

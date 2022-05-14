@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssetManagerTasks extends PlutoBatchUtils {
@@ -21,15 +18,62 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     private static final MathContext mathContext = new MathContext(20, RoundingMode.HALF_UP);
 
     public static void balance() {
-        List<BasketTO> baskets = getBaskets();
-        Map<String, SpotTO> spots = getSpots();
-        List<PositionTO> positions = getCurrentPositions();
-        List<PositionTO> positionsByDesign = getPositionsByDesign(baskets, spots, getEquivalentSumByBasket(positions, spots));
+        BigDecimal threshold = BigDecimal.valueOf(0.01);    // Desviaciones del 1%
+        Map<String, BigDecimal> positions = getPositions();
+        Map<String, BigDecimal> weights = getWeights();
 
-        double threshold = 0.05;
+        Set<String> currencies = new HashSet<>(2);
+        currencies.addAll(weights.keySet());
+        currencies.addAll(positions.keySet());
 
-        Map<PositionTO, BigDecimal> deviations = filterDeviations(getDeviations(positions, positionsByDesign), threshold, positions, spots);
-        submitTradesAndUpdatePositions(buildTrades(deviations, spots));
+        Map<String, SpotEntity> spots = getSpots(currencies);
+        BigDecimal btc = getBTCEquivalent(positions, spots);
+        Map<String, BigDecimal> qBid = getUpperBounds(btc, spots, weights);
+        Map<String, BigDecimal> qAsk = getLowerBounds(btc, spots, weights);
+        List<TradeTO> trading = getSellingTrades(qBid, positions, threshold);
+        trading.addAll(getBuyingTrades(qAsk, positions, threshold));
+        callTrader(trading);
+    }
+
+    private static List<TradeTO> getSellingTrades(Map<String, BigDecimal> qBid, Map<String, BigDecimal> positions, BigDecimal threshold) {
+        return getTrades(qBid, positions, threshold, 1);
+    }
+
+    private static List<TradeTO> getBuyingTrades(Map<String, BigDecimal> qAsk, Map<String, BigDecimal> positions, BigDecimal threshold) {
+        return getTrades(qAsk, positions, threshold, -1);
+    }
+
+    private static List<TradeTO> getTrades(Map<String, BigDecimal> q, Map<String, BigDecimal> positions, BigDecimal threshold, int side) {
+        List<TradeTO> selling = new LinkedList<>();
+        positions.forEach((ccy, p) -> {
+            if (q.get(ccy) != null) {
+                BigDecimal diff = q.get(ccy).subtract(p);
+                if (diff.compareTo(threshold) == side && !"BTC".equals(ccy)) {
+                    selling.add(new TradeTO(ccy+"BTC", diff));
+                }
+            }
+        });
+        return selling;
+    }
+
+    private static Map<String, BigDecimal> getUpperBounds(BigDecimal btc, Map<String, SpotEntity> spots, Map<String, BigDecimal> weights) {
+        Map<String, BigDecimal> bounds = new HashMap<>();
+        weights.forEach((ccy, w) -> bounds.put(ccy, w.multiply(btc).divide(spots.get(ccy).getBid(), RoundingMode.HALF_UP)));
+        return bounds;
+    }
+
+    private static Map<String, BigDecimal> getLowerBounds(BigDecimal btc, Map<String, SpotEntity> spots, Map<String, BigDecimal> weights) {
+        Map<String, BigDecimal> bounds = new HashMap<>();
+        weights.forEach((ccy, w) -> bounds.put(ccy, w.multiply(btc).divide(spots.get(ccy).getOffer(), RoundingMode.HALF_UP)));
+        return bounds;
+    }
+
+    private static Map<String, BigDecimal> getWeights() {
+        Optional<BasketTO> basket = getBaskets().stream().filter(b -> Long.compare(1L, b.getId()) == 0).findFirst();
+        List<WeightTO> w = basket.isPresent() ? basket.get().getWeights() : new ArrayList<>();
+        Map<String, BigDecimal> weights = new HashMap<>(w.size());
+        w.forEach(i -> weights.put(i.getCurrency(), BigDecimal.valueOf(i.getWeight())));
+        return weights;
     }
 
     /**
@@ -38,7 +82,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots Map<String, SpotTO> spots
      * @return Map<Long, List<TradeTO>>
      */
-    protected static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotTO> spots) {
+    protected static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotEntity> spots) {
         LOG.info("Building trades");
         Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
         for (PositionTO k : deviation.keySet()) {
@@ -62,11 +106,11 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param k PositionTO
      * @return TradeTO
      */
-    private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotTO spot) {
+    private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotEntity spot) {
         String pair = k.getCurrency() + "BTC";
         BigDecimal amount = deviation.negate();
         // Price da igual porque usaremos operaciones market, no limit
-        Double priceAux = amount.doubleValue() < 0.0 ? spot.getBid() : spot.getOffer();
+        Double priceAux = amount.doubleValue() < 0.0 ? spot.getBid().doubleValue() : spot.getOffer().doubleValue();
         BigDecimal price = BigDecimal.valueOf(priceAux);
         return new TradeTO(pair, price, amount);
     }
@@ -125,147 +169,18 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     }
 
     /**
-     * Filters deviations map to keep only the ones which must be corrected attending to the threshold
-     * @param deviations deviation values for each position
-     * @param threshold this limits which positions must be corrected and which not to (x per one, 100% = 1)
-     * @param spots map with the price of each currency over the base currency (BTC)
-     * @return deviations bigger than threshold
-     */
-    public static Map<PositionTO, BigDecimal> filterDeviations(Map<PositionTO, BigDecimal> deviations, double threshold, List<PositionTO> positions, Map<String, SpotTO> spots) {
-        boolean proceed = false;
-        Map<String, BigDecimal> basketEquivalentSums = getEquivalentSumByBasket(positions, spots);
-        Map<PositionTO, BigDecimal> filtered = new HashMap<>();
-        for (PositionTO p : deviations.keySet()) {
-            BigDecimal price = BigDecimal.valueOf(spots.get(p.getCurrency()).getMid());
-            BigDecimal deviationBtcEq = deviations.get(p).multiply(price);
-            BigDecimal deviationOverSum = deviationBtcEq.divide(basketEquivalentSums.get(p.getBasket().getLabel()), mathContext);
-            filtered.put(p, deviations.get(p));
-            if (deviationOverSum.abs().doubleValue() > threshold) {
-                proceed = true;
-            }
-        }
-        return proceed ? filtered : new HashMap<>(0);
-    }
-
-    /**
-     * Calculates the difference between what is and what should be for each position
-     * @param positions actual positions
-     * @param positionsByDesign positions that should be caring the basket design and current spots
-     * @return the excess in each position
-     */
-    public static Map<PositionTO, BigDecimal> getDeviations(List<PositionTO> positions, List<PositionTO> positionsByDesign) {
-        Map<PositionTO, BigDecimal> deviations = new HashMap<>();
-        Map<String, Map<String, Double>> pos = positionsAsMap(positions);
-        Map<String, Map<String, Double>> posByDesign = positionsAsMap(positionsByDesign);
-        positions.forEach(p -> {
-            BigDecimal minuendo = getPositionValue(pos, p);
-            BigDecimal sustraendo = getPositionValue(posByDesign, p);
-            BigDecimal diferencia = minuendo.add(sustraendo.negate(), mathContext).setScale(10, RoundingMode.HALF_UP);
-            if (BigDecimal.ZERO.setScale(10, RoundingMode.HALF_UP).compareTo(diferencia) != 0) {
-                deviations.put(p, diferencia);
-            }
-        });
-        return deviations;
-    }
-
-    /**
-     * Position on currencies that does not exist in our system are considered zero
-     * @param positionsMap positions ordered by basket and currency
-     * @param position position being analyzed
-     * @return quantity of analyzed position
-     */
-    public static BigDecimal getPositionValue(Map<String, Map<String, Double>> positionsMap, PositionTO position) {
-        String label = position.getBasket() != null ? position.getBasket().getLabel() : null;
-        String ccy = position.getCurrency();
-
-        Double value = 0.0;
-        if (label != null && ccy != null && positionsMap.get(label) != null && positionsMap.get(label).get(ccy) != null) {
-            value = positionsMap.get(label).get(ccy);
-        } else {
-            LOG.error("Void value for position: " + position);
-        }
-        return new BigDecimal(value, mathContext).setScale(10, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * Calculates what the positions should be to fit into our designed weights with current spots
-     * @param baskets designed baskets with the weights
-     * @param spots map with the price of each currency over the base currency (BTC)
-     * @param sums addition in base currency (BTC) of all the positions in a basket
-     * @return the positions that we should have
-     */
-    public static List<PositionTO> getPositionsByDesign(List<BasketTO> baskets, Map<String, SpotTO> spots, Map<String, BigDecimal> sums) {
-        List<PositionTO> wished = new ArrayList<>();
-        if (spots == null || spots.isEmpty()) {
-            LOG.error("Could not get wished positions by design due to lack of spots");
-            return wished;
-        }
-
-        for (BasketTO basket : baskets) {
-            BigDecimal sum = sums.get(basket.getLabel());
-
-            for (WeightTO weight : basket.getWeights()) {
-                BigDecimal price = BigDecimal.valueOf(spots.get(weight.getCurrency()).getMid());
-                BigDecimal w = new BigDecimal(weight.getWeight(), mathContext);
-                LOG.info("[weight]: "+weight+"[sum]: "+sum+"[price]: "+price);
-                BigDecimal q = w.multiply(sum).divide(price, mathContext).setScale(10, RoundingMode.HALF_UP);
-                PositionTO position = new PositionTO(null, basket, weight.getCurrency(), q);
-
-                wished.add(position);
-            }
-        }
-        return wished;
-    }
-
-    /**
-     * Returns the base currency (BTC) equivalent of all positions in a basket added
-     * @param positions list with each position (each currency in each basket)
-     * @param spots map with the price of each currency over the base currency (BTC)
-     * @return
-     */
-    public static Map<String, BigDecimal> getEquivalentSumByBasket(List<PositionTO> positions, Map<String, SpotTO> spots) {
-        Map<String, Map<String, BigDecimal>> equivalent = turnPositionsIntoEquivalent(positions, spots);
-
-        Map<String, BigDecimal> eq = new HashMap<>(equivalent.size());
-        equivalent.keySet().forEach(
-                k -> eq.put(k, getEquivalentSum(equivalent.get(k)).setScale(10, RoundingMode.HALF_UP))
-        );
-        return eq;
-    }
-
-    private static BigDecimal getEquivalentSum(Map<String, BigDecimal> equivalents) {
-        BigDecimal sum = new BigDecimal(0.0, mathContext);
-        for (BigDecimal v : equivalents.values()){
-            if (v == null) {
-                throw new IllegalArgumentException("Received null position quantity");
-            }
-            sum = sum.add(v);
-        }
-        return sum.setScale(10, RoundingMode.HALF_UP);
-    }
-
-    /**
      * Calculate how much each position is in the base currency (BTC), in order to compare positions easily
      * @param positions list with each position (each currency in each basket)
      * @param spots map with the price of each currency over the base currency (BTC)
      * @return Map with values in base currency for each alt currency in each basket
      */
-    public static Map<String, Map<String, BigDecimal>> turnPositionsIntoEquivalent(List<PositionTO> positions, Map<String, SpotTO> spots) {
-        Map<String, Map<String, BigDecimal>> equivalent = new HashMap<>();
-        spots.put("BTC", new SpotTO("BTCBTC", 1.0));      // Base for equivalency
-        for (PositionTO p : positions) {
-            BigDecimal quantity = p.getQuantity();
-            BigDecimal price = BigDecimal.valueOf(spots.get(p.getCurrency()).getMid());
-            BigDecimal eq;
-            if (quantity == null || price == null) {
-                LOG.warn("Quantity or price null for pair " + p.getCurrency());
-                eq = new BigDecimal(0.0, mathContext);
-            } else {
-                eq = quantity.multiply(price, mathContext).setScale(10, RoundingMode.HALF_UP);
+    public static BigDecimal getBTCEquivalent(Map<String, BigDecimal> positions, Map<String, SpotEntity> spots) {
+        BigDecimal equivalent = BigDecimal.ZERO;
+        for (String c : positions.keySet()) {
+            BigDecimal p = positions.get(c);
+            if (spots.get(c) != null && p != null) {
+                equivalent = equivalent.add(p.multiply(spots.get(c).getBid()));
             }
-
-            equivalent.putIfAbsent(p.getBasket().getLabel(), new HashMap<>());
-            equivalent.get(p.getBasket().getLabel()).put(p.getCurrency(), eq.setScale(10, RoundingMode.HALF_UP));
         }
         return equivalent;
     }
@@ -275,8 +190,8 @@ public class AssetManagerTasks extends PlutoBatchUtils {
      * @param spots list to be transformed
      * @return Map with basic info from the list
      */
-    public static Map<String, SpotTO> spotsAsMap(List<SpotTO> spots) {
-        Map<String, SpotTO> res = new HashMap<>();
+    public static Map<String, SpotEntity> spotsAsMap(List<SpotEntity> spots) {
+        Map<String, SpotEntity> res = new HashMap<>();
         if (spots == null) {
             return res;
         }
@@ -286,31 +201,7 @@ public class AssetManagerTasks extends PlutoBatchUtils {
             }
         });
 
-        res.putIfAbsent("BTC", new SpotTO("BTCBTC", 1.0));
-        return res;
-    }
-
-    /**
-     * Transforms a list of complete PositionTO objects into Map: name, spot
-     * @param positions list to be transformed
-     * @return Map with basic info from the list
-     */
-    public static Map<String, Map<String, Double>> positionsAsMap(List<PositionTO> positions) {
-        Map<String, Map<String, Double>> res = new HashMap<>();
-        if (positions == null) {
-            return res;
-        }
-        positions.forEach(p -> {
-            String currency = p.getCurrency();
-            Double quantity = p.getQuantity().doubleValue();
-            if (res.containsKey(p.getBasket().getLabel())) {
-                res.get(p.getBasket().getLabel()).put(currency, quantity);
-            } else {
-                Map<String, Double> value = new HashMap<>();
-                value.put(currency, quantity);
-                res.put(p.getBasket().getLabel(), value);
-            }
-        });
+        res.putIfAbsent("BTC", new SpotEntity("BTCBTC", BigDecimal.ONE));
         return res;
     }
 

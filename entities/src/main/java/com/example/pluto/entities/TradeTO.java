@@ -41,6 +41,12 @@ public class TradeTO {
     public TradeTO() {
     }
 
+    public TradeTO(String pair, BigDecimal amount) {
+        this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+        this.pair = pair;
+        this.amount = amount;
+    }
+
     public TradeTO(String pair, BigDecimal price, BigDecimal amount) {
         this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         this.pair = pair;

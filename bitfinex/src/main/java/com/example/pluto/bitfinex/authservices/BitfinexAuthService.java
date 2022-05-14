@@ -4,6 +4,7 @@ import com.example.pluto.bitfinex.BitfinexAPIClient;
 import com.example.pluto.bitfinex.authservices.concurrency.Trader;
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.repositories.TradeRepository;
+import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.TradeTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,11 @@ public class BitfinexAuthService {
     public ExecutorService executor = Executors.newWorkStealingPool();
 
     public BitfinexAuthService() {
+    }
+
+    public List<PositionTO> getPositions() {
+        HttpResponse res = client.authPost(Arrays.asList("v2", "auth", "r", "wallets"), new HashMap<>(), "");
+        return parser.parsePositions(res.body().toString());
     }
 
     public List<TradeTO> trade(List<TradeTO> defTrades) {

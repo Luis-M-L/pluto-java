@@ -32,7 +32,7 @@ public class PositionsController {
     @GetMapping(value = "/last")
     public List<PositionTO> getAllCcyLastPositions() {
         LOG.info("Get last positions for all currencies");
-        return positionService.getAllCcyLastPositions();
+        return bitfinexAuthService.getPositions();
     }
 
     @GetMapping(value = "/basket/{basketId}")

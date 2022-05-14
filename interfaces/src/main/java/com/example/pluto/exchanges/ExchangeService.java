@@ -1,16 +1,18 @@
 package com.example.pluto.exchanges;
 
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 
 import java.util.List;
 
 public interface ExchangeService {
 
-    SpotTO getSpot(String instrument);
+    SpotEntity getSpot(String instrument);
 
-    SpotTO getSpot(String instrument, String time);
+    SpotEntity getSpot(String instrument, String time);
 
-    SpotTO saveSpot(SpotTO spot);
+    SpotEntity saveSpot(SpotEntity spot);
 
-    List<SpotTO> getSpots();
+    List<SpotEntity> getSpots();
+
+    List<SpotEntity> getSpots(List<String> instruments);
 }

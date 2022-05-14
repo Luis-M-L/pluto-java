@@ -1,7 +1,7 @@
 package com.example.pluto.bitfinex;
 
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,13 +32,13 @@ public class BitfinexParserTest {
         MockedStatic<Timestamp> instantMockedStatic = Mockito.mockStatic(Timestamp.class);
         instantMockedStatic.when(() -> Timestamp.from(Mockito.any())).thenReturn(timestamp);
 
-        SpotTO spotTO = parser.parseSpot(jsonTicker);
+        SpotEntity spotEntity = parser.parseSpot(jsonTicker);
 
-        Assert.assertEquals("tBTCUSD","t"+spotTO.getInstrument());
-        Assert.assertEquals(timestamp, spotTO.getTimestamp());
-        Assert.assertEquals((Double) 37719.0, spotTO.getBid());
-        Assert.assertEquals((Double) 37721.0, spotTO.getOffer());
-        Assert.assertEquals((Double) 4069.14892134, spotTO.getVolume());
+        Assert.assertEquals("tBTCUSD","t"+ spotEntity.getInstrument());
+        Assert.assertEquals(timestamp, spotEntity.getTimestamp());
+        Assert.assertEquals((Double) 37719.0, spotEntity.getBid());
+        Assert.assertEquals((Double) 37721.0, spotEntity.getOffer());
+        Assert.assertEquals((Double) 4069.14892134, spotEntity.getVolume());
     }
 
     @Test

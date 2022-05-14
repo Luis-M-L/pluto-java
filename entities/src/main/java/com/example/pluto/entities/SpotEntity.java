@@ -5,13 +5,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
 @Table(name = "PLUTO_SPOTS")
-@NamedQuery(name = "getAllLast", query = "select s from SpotTO s where s.timestamp > :someago")
-public class SpotTO {
+@NamedQuery(name = "getAllLast", query = "select s from SpotEntity s where s.timestamp > :someago")
+public class SpotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -21,27 +23,27 @@ public class SpotTO {
     private String instrument;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private Timestamp timestamp;
-    private Double bid;
-    private Double mid;
-    private Double offer;
-    private Double volume;
+    private BigDecimal bid;
+    private BigDecimal mid;
+    private BigDecimal offer;
+    private BigDecimal volume;
 
-    public SpotTO() {
+    public SpotEntity() {
     }
 
-    public SpotTO(String instrument, Double mid) {
+    public SpotEntity(String instrument, BigDecimal mid) {
         this.instrument = instrument;
         this.bid = mid;
         this.offer = mid;
         setMid();
     }
 
-    public SpotTO(String instrument, Timestamp timestamp, Double bid, Double offer, Double volume) {
+    public SpotEntity(String instrument, Timestamp timestamp, BigDecimal bid, BigDecimal offer, BigDecimal volume) {
         this.instrument = instrument;
         this.timestamp = timestamp;
         this.bid = bid;
         this.offer = offer;
-        this.mid = (bid != null && offer != null) ? (bid + offer) / 2 : null;
+        this.mid = (bid != null && offer != null) ? (bid.add(offer)).divide(BigDecimal.valueOf(2.0), RoundingMode.HALF_UP) : null;
         this.volume = volume;
     }
 
@@ -69,37 +71,37 @@ public class SpotTO {
         this.timestamp = timestamp;
     }
 
-    public Double getBid() {
+    public BigDecimal getBid() {
         return bid;
     }
 
-    public void setBid(Double bid) {
+    public void setBid(BigDecimal bid) {
         this.bid = bid;
         setMid();
     }
 
-    public Double getMid() {
+    public BigDecimal getMid() {
         return mid;
     }
 
     public void setMid() {
-        this.mid = (this.bid != null && this.offer != null) ? (this.bid + this.offer) / 2.0 : null;
+        this.mid = (this.bid != null && this.offer != null) ? (this.bid.add(this.offer)).divide(BigDecimal.valueOf(2.0), RoundingMode.HALF_UP) : null;
     }
 
-    public Double getOffer() {
+    public BigDecimal getOffer() {
         return offer;
     }
 
-    public void setOffer(Double offer) {
+    public void setOffer(BigDecimal offer) {
         this.offer = offer;
         setMid();
     }
 
-    public Double getVolume() {
+    public BigDecimal getVolume() {
         return volume;
     }
 
-    public void setVolume(Double volume) {
+    public void setVolume(BigDecimal volume) {
         this.volume = volume;
     }
 
@@ -112,8 +114,8 @@ public class SpotTO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpotTO spotTO = (SpotTO) o;
-        return instrument.equals(spotTO.instrument) && Objects.equals(bid, spotTO.bid) && mid.equals(spotTO.mid) && Objects.equals(offer, spotTO.offer) && Objects.equals(volume, spotTO.volume);
+        SpotEntity spotEntity = (SpotEntity) o;
+        return instrument.equals(spotEntity.instrument) && Objects.equals(bid, spotEntity.bid) && mid.equals(spotEntity.mid) && Objects.equals(offer, spotEntity.offer) && Objects.equals(volume, spotEntity.volume);
     }
 
     @Override

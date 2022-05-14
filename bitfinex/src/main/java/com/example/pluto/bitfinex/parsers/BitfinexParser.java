@@ -1,8 +1,11 @@
 package com.example.pluto.bitfinex.parsers;
 
-import com.example.pluto.errors.ExchangeError;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.bitfinex.parsers.to.SpotTO;
+import com.example.pluto.bitfinex.parsers.to.WalletTO;
+import com.example.pluto.entities.PositionTO;
+import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
+import com.example.pluto.errors.ExchangeError;
 import com.example.pluto.exchanges.ExchangeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Component
@@ -33,9 +37,9 @@ public class BitfinexParser implements ExchangeParser {
     }
 
     @Override
-    public SpotTO parseSpot(String json) {
+    public SpotEntity parseSpot(String json) {
         LOGGER.info(String.format(INFO_MSG, "spot", json));
-        SpotTO spot = new SpotTO();
+        SpotEntity spot = new SpotEntity();
 
         // si el json viene vacío no lo procesamos
         if (json.length() < 3) {
@@ -44,13 +48,20 @@ public class BitfinexParser implements ExchangeParser {
 
         JsonArray array = getJsonArray(json).getJsonArray(0);
         spot.setInstrument(array.getString(0).substring(1));
-        spot.setBid(array.getJsonNumber(1).doubleValue());
-        spot.setOffer(array.getJsonNumber(3).doubleValue());
-        spot.setVolume(array.getJsonNumber(8).doubleValue());
+        spot.setBid(array.getJsonNumber(1).bigDecimalValue());
+        spot.setOffer(array.getJsonNumber(3).bigDecimalValue());
+        spot.setVolume(array.getJsonNumber(8).bigDecimalValue());
         Timestamp timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         spot.setTimestamp(timestamp);
 
         return spot;
+    }
+
+    public List<SpotEntity> parseSpots(String json) {
+        JsonArray array = getJsonArray(json);
+        List<SpotEntity> spots = new LinkedList<>();
+        array.iterator().forEachRemaining(s -> spots.add(new SpotTO((JsonArray) s).toSpot()));
+        return spots;
     }
 
     @Override
@@ -74,6 +85,14 @@ public class BitfinexParser implements ExchangeParser {
         error.setErrorCode(String.valueOf(array.getJsonNumber(1)));
         error.setMessage(array.getString(2));
         return error;
+    }
+
+    @Override
+    public List<PositionTO> parsePositions(String json) {
+        JsonArray array = getJsonArray(json);
+        List<PositionTO> positions = new LinkedList<>();
+        array.iterator().forEachRemaining(t -> positions.add(new WalletTO((JsonArray) t).toPositionTO()));
+        return positions;
     }
 
     private TradeTO mapArrayToTrade(JsonArray innerArray) {
