@@ -30,9 +30,9 @@ services:
     ports:
     - "48557:48557"
 
-  batches:
+  assetmanager:
     build:
-      context: ./batches/
+      context: ./assetmanager/
       dockerfile: Dockerfile
     ports:
       - "48559:8080"

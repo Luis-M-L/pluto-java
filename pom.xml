@@ -10,7 +10,9 @@
 		<module>bitfinex</module>
 		<module>ordenanza</module>
 		<module>batches</module>
-	</modules>
+        <module>datacrawler</module>
+        <module>assetmanager</module>
+    </modules>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>

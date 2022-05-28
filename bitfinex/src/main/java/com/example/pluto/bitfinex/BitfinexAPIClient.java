@@ -81,7 +81,7 @@ public class BitfinexAPIClient extends ExchangeAPIClient {
         subpath.forEach(s -> sb.append("/").append(s));
         if (!params.keySet().isEmpty()) {
             sb.append("?");
-            params.keySet().forEach(k -> sb.append(k).append("=").append(params.get(k)));
+            params.keySet().forEach(k -> sb.append(k).append("=").append(params.get(k)).append("&"));
         }
         return sb.toString();
     }

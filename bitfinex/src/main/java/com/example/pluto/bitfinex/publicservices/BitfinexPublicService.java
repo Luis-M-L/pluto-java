@@ -45,19 +45,37 @@ public class BitfinexPublicService implements ExchangeService {
 
     @Override
     public List<SpotEntity> getSpots(List<String> instruments) {
+        return getSpots(Arrays.asList("v2", "tickers"), instruments, null);
+    }
+
+    @Override
+    public List<SpotEntity> getSpotsHist(List<String> instruments) {
+        List<SpotEntity> spots = new LinkedList<>();
+
+        Map<String, String> params = new HashMap<>(4);
+        params.put("limit", "250");
+        long end = System.currentTimeMillis();
+        long yearAgo = 1621116000000L;
+        long start;
+        do {
+            start = end - 2500000L;
+            params.put("start", String.valueOf(start));
+            params.put("end", String.valueOf(end));
+            List<SpotEntity> split = getSpots(Arrays.asList("v2", "tickers", "hist"), instruments, params);
+            spots.addAll(split);
+
+            end = start - 10000L;
+        } while (yearAgo < start);
+        return spots;
+    }
+
+    private List<SpotEntity> getSpots(List<String> path, List<String> instruments, Map<String, String> params) {
         List spots = null;
-        StringBuilder sb = new StringBuilder();
-        instruments.forEach(i -> {
-            if (!"BTC".equals(i)) {
-                sb.append(",t").append(i).append("BTC");
-            }
-        });
-        sb.delete(0, 1);
-        Map<String, String> params = new HashMap<>(1);
-        params.put("symbols", sb.toString());
+        params = params == null ? new HashMap<>(1) : params;
+        params.put("symbols", getFormatedSymbols(instruments));
         HttpResponse response = null;
         try {
-            response = client.publicGet(Arrays.asList("v2", "tickers"), params);
+            response = client.publicGet(path, params);
             if (response.statusCode() == 200) {
                 spots = parser.parseSpots(response.body().toString());
             } else {
@@ -70,6 +88,17 @@ public class BitfinexPublicService implements ExchangeService {
             e.printStackTrace();
         }
         return spots;
+    }
+
+    private String getFormatedSymbols(List<String> instruments) {
+        StringBuilder sb = new StringBuilder();
+        instruments.forEach(i -> {
+            if (!"BTC".equals(i)) {
+                sb.append(",t").append(i).append("BTC");
+            }
+        });
+        sb.delete(0, 1);
+        return sb.toString();
     }
 
     @Override

@@ -9,6 +9,9 @@ import java.util.List;
 
 public interface ExchangeController {
 
+    @GetMapping(value = "spotsHist/{instruments}")
+    List<SpotEntity> getSpotsHist(@PathVariable String instruments);
+
     @GetMapping(value = "spots/{instruments}")
     List<SpotEntity> getSpots(@PathVariable String instruments);
 

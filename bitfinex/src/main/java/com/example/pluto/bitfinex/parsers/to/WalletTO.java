@@ -13,7 +13,7 @@ public class WalletTO {
     public BigDecimal UNSETTLED_INTEREST;
     public BigDecimal AVAILABLE_BALANCE;
     public String LAST_CHANGE;
-    public String TRADE_DETAILS;
+    public Object TRADE_DETAILS;
 
     public WalletTO(JsonArray j) {
         WALLET_TYPE = j.isNull(0) ? null : j.getString(0);
@@ -22,7 +22,7 @@ public class WalletTO {
         UNSETTLED_INTEREST = j.isNull(3) ? null : j.getJsonNumber(3).bigDecimalValue();
         AVAILABLE_BALANCE = j.isNull(4) ? null : j.getJsonNumber(4).bigDecimalValue();
         LAST_CHANGE = j.isNull(5) ? null : j.getString(5);
-        TRADE_DETAILS = j.isNull(6) ? null : j.getString(6);
+        TRADE_DETAILS = j.isNull(6) ? null : j.get(6);
     }
 
     public PositionTO toPositionTO() {

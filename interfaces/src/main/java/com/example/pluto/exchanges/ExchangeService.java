@@ -15,4 +15,6 @@ public interface ExchangeService {
     List<SpotEntity> getSpots();
 
     List<SpotEntity> getSpots(List<String> instruments);
+
+    List<SpotEntity> getSpotsHist(List<String> instruments);
 }

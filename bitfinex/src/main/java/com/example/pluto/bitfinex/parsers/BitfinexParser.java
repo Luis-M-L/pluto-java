@@ -89,6 +89,7 @@ public class BitfinexParser implements ExchangeParser {
 
     @Override
     public List<PositionTO> parsePositions(String json) {
+        LOGGER.debug("Positions received: " + json);
         JsonArray array = getJsonArray(json);
         List<PositionTO> positions = new LinkedList<>();
         array.iterator().forEachRemaining(t -> positions.add(new WalletTO((JsonArray) t).toPositionTO()));
@@ -146,5 +147,9 @@ public class BitfinexParser implements ExchangeParser {
             }
             trade.setPrice(new BigDecimal(price));
         }
+    }
+
+    public static BigDecimal getBigDecimalFromJsonArray(JsonArray array, int idx) {
+        return array.isNull(idx) ? null : array.getJsonNumber(idx).bigDecimalValue();
     }
 }

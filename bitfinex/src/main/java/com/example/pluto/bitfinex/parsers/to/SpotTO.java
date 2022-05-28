@@ -1,9 +1,11 @@
 package com.example.pluto.bitfinex.parsers.to;
 
+import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.entities.SpotEntity;
 
 import javax.json.JsonArray;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 public class SpotTO {
 
@@ -18,20 +20,24 @@ public class SpotTO {
     public BigDecimal VOLUME;
     public BigDecimal HIGH;
     public BigDecimal LOW;
+    public Timestamp TIMESTAMP;
 
     public SpotTO(JsonArray j) {
         SYMBOL = j.getString(0);
         if (SYMBOL.startsWith("t")) {
-            BID = j.getJsonNumber(1).bigDecimalValue();
-            BID_SIZE = j.getJsonNumber(2).bigDecimalValue();
-            ASK = j.getJsonNumber(3).bigDecimalValue();
-            ASK_SIZE = j.getJsonNumber(4).bigDecimalValue();
-            DAILY_CHANGE = j.getJsonNumber(5).bigDecimalValue();
-            DAILY_CHANGE_RELATIVE = j.getJsonNumber(6).bigDecimalValue();
-            LAST_PRICE = j.getJsonNumber(7).bigDecimalValue();
-            VOLUME = j.getJsonNumber(8).bigDecimalValue();
-            HIGH = j.getJsonNumber(9).bigDecimalValue();
-            LOW = j.getJsonNumber(10).bigDecimalValue();
+            BID = BitfinexParser.getBigDecimalFromJsonArray(j, 1);
+            BID_SIZE = BitfinexParser.getBigDecimalFromJsonArray(j, 2);
+            ASK = BitfinexParser.getBigDecimalFromJsonArray(j, 3);
+            ASK_SIZE = BitfinexParser.getBigDecimalFromJsonArray(j, 4);
+            DAILY_CHANGE = BitfinexParser.getBigDecimalFromJsonArray(j, 5);
+            DAILY_CHANGE_RELATIVE = BitfinexParser.getBigDecimalFromJsonArray(j, 6);
+            LAST_PRICE = BitfinexParser.getBigDecimalFromJsonArray(j, 7);
+            VOLUME = BitfinexParser.getBigDecimalFromJsonArray(j, 8);
+            HIGH = BitfinexParser.getBigDecimalFromJsonArray(j, 9);
+            LOW = BitfinexParser.getBigDecimalFromJsonArray(j, 10);
+            if (j.size() >= 12 && !j.isNull(12)) {
+                TIMESTAMP = new Timestamp(j.getJsonNumber(12).longValue());
+            }
         }
     }
 
@@ -41,6 +47,7 @@ public class SpotTO {
         s.setBid(BID);
         s.setOffer(ASK);
         s.setVolume(VOLUME);
+        s.setTimestamp(TIMESTAMP);
         return s;
     }
 }

@@ -53,6 +53,7 @@ public final class PlutoConstants {
         BASKET_ALL("/basket/all/"),
         BITFINEX_TRADE("/bitfinex/trade/"),
         BITFINEX_POSTTRADE("/bitfinex/posttrade/"),
+        BITFINEX_SPOTS_HIST("/bitfinex/spotsHist/"),
         BITFINEX_SPOTS("/bitfinex/spots/"),
         BITFINEX_SPOT("/bitfinex/spot/"),
         BITFINEX_UNACTIVE("/bitfinex/trade/unactive/"),

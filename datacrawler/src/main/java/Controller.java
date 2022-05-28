@@ -1,14 +1,9 @@
-package com.example.batches.datacrawler;
-
-import com.example.batches.PlutoBatchUtils;
 import com.example.pluto.PlutoConstants;
 import com.example.pluto.entities.InstrumentTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
@@ -19,14 +14,18 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.pluto.PlutoConstants.HEADER_NAME_CONTENT_TYPE;
-import static com.example.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
+import static com.example.pluto.PlutoConstants.*;
 
-@Configuration
-@EnableBatchProcessing
-public class DatacrawlerBatchUtils extends PlutoBatchUtils {
+public class Controller {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DatacrawlerBatchUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
+
+    public static void main(String[] args) throws InterruptedException {
+        while (true) {
+            registerSpots();
+            Thread.sleep(Long.valueOf(args[0]));
+        }
+    }
 
     public static void registerSpots(){
         LOG.info("Registering spot data");
@@ -65,4 +64,13 @@ public class DatacrawlerBatchUtils extends PlutoBatchUtils {
             ie.printStackTrace();
         }
     }
+
+    protected static String buildUrl(String... split) {
+        StringBuilder sb = new StringBuilder(HTTP_PREFIX);
+        for (int i = 0; i <= split.length - 1; i++) {
+            sb.append(split[i]);
+        }
+        return sb.toString();
+    }
+
 }

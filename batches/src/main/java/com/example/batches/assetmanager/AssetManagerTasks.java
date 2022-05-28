@@ -1,7 +1,10 @@
 package com.example.batches.assetmanager;
 
 import com.example.batches.PlutoBatchUtils;
-import com.example.pluto.entities.*;
+import com.example.pluto.entities.BasketTO;
+import com.example.pluto.entities.SpotEntity;
+import com.example.pluto.entities.TradeTO;
+import com.example.pluto.entities.WeightTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +12,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AssetManagerTasks extends PlutoBatchUtils {
 
@@ -44,16 +46,16 @@ public class AssetManagerTasks extends PlutoBatchUtils {
     }
 
     private static List<TradeTO> getTrades(Map<String, BigDecimal> q, Map<String, BigDecimal> positions, BigDecimal threshold, int side) {
-        List<TradeTO> selling = new LinkedList<>();
+        List<TradeTO> trading = new LinkedList<>();
         positions.forEach((ccy, p) -> {
             if (q.get(ccy) != null) {
                 BigDecimal diff = q.get(ccy).subtract(p);
                 if (diff.compareTo(threshold) == side && !"BTC".equals(ccy)) {
-                    selling.add(new TradeTO(ccy+"BTC", diff));
+                    trading.add(new TradeTO(ccy+"BTC", diff));
                 }
             }
         });
-        return selling;
+        return trading;
     }
 
     private static Map<String, BigDecimal> getUpperBounds(BigDecimal btc, Map<String, SpotEntity> spots, Map<String, BigDecimal> weights) {
@@ -74,98 +76,6 @@ public class AssetManagerTasks extends PlutoBatchUtils {
         Map<String, BigDecimal> weights = new HashMap<>(w.size());
         w.forEach(i -> weights.put(i.getCurrency(), BigDecimal.valueOf(i.getWeight())));
         return weights;
-    }
-
-    /**
-     * Builds needed trades to undo deviations
-     * @param deviation Map<PositionTO, BigDecimal>
-     * @param spots Map<String, SpotTO> spots
-     * @return Map<Long, List<TradeTO>>
-     */
-    protected static Map<Long, List<TradeTO>> buildTrades(Map<PositionTO, BigDecimal> deviation, Map<String, SpotEntity> spots) {
-        LOG.info("Building trades");
-        Map<Long, List<TradeTO>> tradesByBaskets = new HashMap<>();
-        for (PositionTO k : deviation.keySet()) {
-            TradeTO trade = buildTrade(k, deviation.get(k), spots.get(k.getCurrency()));
-            if (!tradesByBaskets.containsKey(k.getBasket().getId())) {
-                tradesByBaskets.put(k.getBasket().getId(), new ArrayList<>());
-            }
-            if (!"BTCBTC".equals(trade.getPair())) {
-                List<TradeTO> pairTrades = tradesByBaskets.get(k.getBasket().getId());
-                pairTrades.add(trade);
-            }
-        }
-        LOG.debug("Trades built: " + tradesByBaskets);
-        return tradesByBaskets;
-    }
-
-    /**
-     * Build one trade from parameters
-     * @param deviation BigDecimal
-     * @param spot SpotTO
-     * @param k PositionTO
-     * @return TradeTO
-     */
-    private static TradeTO buildTrade(PositionTO k, BigDecimal deviation, SpotEntity spot) {
-        String pair = k.getCurrency() + "BTC";
-        BigDecimal amount = deviation.negate();
-        // Price da igual porque usaremos operaciones market, no limit
-        Double priceAux = amount.doubleValue() < 0.0 ? spot.getBid().doubleValue() : spot.getOffer().doubleValue();
-        BigDecimal price = BigDecimal.valueOf(priceAux);
-        return new TradeTO(pair, price, amount);
-    }
-
-    /**
-     *
-     * @param tradesByBaskets
-     */
-    private static void submitTradesAndUpdatePositions(Map<Long, List<TradeTO>> tradesByBaskets) {
-        tradesByBaskets.forEach((k, v) -> {
-            List<TradeTO> sells = v.stream().filter(t -> BigDecimal.ZERO.compareTo(t.getAmount()) == 1).collect(Collectors.toList());
-            List<TradeTO> buys = v.stream().filter(t -> BigDecimal.ZERO.compareTo(t.getAmount()) == -1).collect(Collectors.toList());
-            List<TradeTO> filled = new ArrayList<>(v.size());
-            filled.addAll(waitToBeFilled(callTrader(sells)));
-            filled.addAll(waitToBeFilled(callTrader(buys)));
-            updatePositions(k, filled);
-        });
-    }
-
-    private static List<TradeTO> waitToBeFilled(List<TradeTO> placed) {
-        List<TradeTO> filled = filterUnactive(placed);
-        if (filled.isEmpty() && placed != null && !placed.isEmpty()) {
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return waitToBeFilled(placed);
-        } else {
-            updateRecentTrades(filled);
-            return filled;
-        }
-    }
-
-    public static List<TradeTO> filterUnactive(List<TradeTO> placed) {
-        List<TradeTO> filtered = new ArrayList<>();
-        if (placed == null || placed.isEmpty()) {
-            return filtered;
-        }
-
-        Map<String, List<TradeTO>> unactive = new HashMap<>();
-        for (TradeTO p : placed) {
-            String pair = p.getPair();
-            if (!unactive.containsKey(pair)) {
-                unactive.put(pair, getUnactiveOrders(pair));
-            }
-            unactive.get(pair).forEach(u -> {
-                if (u.getExchangeId() != null && u.getExchangeId().equals(p.getExchangeId())) {
-                    u.setId(p.getId());
-                    u.setIssuedTimestamp(p.getIssuedTimestamp());
-                    filtered.add(u);
-                }
-            });
-        }
-        return filtered;
     }
 
     /**

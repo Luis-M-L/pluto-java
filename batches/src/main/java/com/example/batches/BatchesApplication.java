@@ -13,12 +13,6 @@ public class BatchesApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BatchesApplication.class, args);
 	}
-/*
-	@Scheduled(fixedRate = 60000)
-	public void crawl() {
-		DatacrawlerBatchUtils.registerSpots();
-	}
-*/
 
 	@Scheduled(fixedRate = 60000)
 	public void checkPositions() {

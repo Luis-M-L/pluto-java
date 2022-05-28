@@ -31,7 +31,12 @@ public class BitfinexController implements ExchangeController {
     public BitfinexAuthService bitfinexAuthService;
 
     @Override
-    public List<SpotEntity> getSpots(String instruments){
+    public List<SpotEntity> getSpotsHist(String instruments) {
+        return bitfinexPublicService.getSpotsHist(Arrays.stream(instruments.split(",")).collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<SpotEntity> getSpots(String instruments) {
         LOG.info("get all spots");
         List<SpotEntity> spots = new ArrayList<>();
         return instruments == null ? bitfinexPublicService.getSpots() :
