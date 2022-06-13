@@ -1,4 +1,4 @@
-package com.example.pluto.bitfinex.parsers.to;
+package com.example.pluto.tos.bitfinex;
 
 import com.example.pluto.entities.PositionTO;
 

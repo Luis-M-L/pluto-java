@@ -1,12 +1,12 @@
 package com.example.pluto.bitfinex.parsers;
 
-import com.example.pluto.bitfinex.parsers.to.SpotTO;
-import com.example.pluto.bitfinex.parsers.to.WalletTO;
 import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.errors.ExchangeError;
 import com.example.pluto.exchanges.ExchangeParser;
+import com.example.pluto.tos.bitfinex.SpotTO;
+import com.example.pluto.tos.bitfinex.WalletTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -149,7 +149,4 @@ public class BitfinexParser implements ExchangeParser {
         }
     }
 
-    public static BigDecimal getBigDecimalFromJsonArray(JsonArray array, int idx) {
-        return array.isNull(idx) ? null : array.getJsonNumber(idx).bigDecimalValue();
-    }
 }

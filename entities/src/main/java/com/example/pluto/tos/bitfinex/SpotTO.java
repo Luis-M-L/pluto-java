@@ -1,6 +1,5 @@
-package com.example.pluto.bitfinex.parsers.to;
+package com.example.pluto.tos.bitfinex;
 
-import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.entities.SpotEntity;
 
 import javax.json.JsonArray;
@@ -25,16 +24,16 @@ public class SpotTO {
     public SpotTO(JsonArray j) {
         SYMBOL = j.getString(0);
         if (SYMBOL.startsWith("t")) {
-            BID = BitfinexParser.getBigDecimalFromJsonArray(j, 1);
-            BID_SIZE = BitfinexParser.getBigDecimalFromJsonArray(j, 2);
-            ASK = BitfinexParser.getBigDecimalFromJsonArray(j, 3);
-            ASK_SIZE = BitfinexParser.getBigDecimalFromJsonArray(j, 4);
-            DAILY_CHANGE = BitfinexParser.getBigDecimalFromJsonArray(j, 5);
-            DAILY_CHANGE_RELATIVE = BitfinexParser.getBigDecimalFromJsonArray(j, 6);
-            LAST_PRICE = BitfinexParser.getBigDecimalFromJsonArray(j, 7);
-            VOLUME = BitfinexParser.getBigDecimalFromJsonArray(j, 8);
-            HIGH = BitfinexParser.getBigDecimalFromJsonArray(j, 9);
-            LOW = BitfinexParser.getBigDecimalFromJsonArray(j, 10);
+            BID = getBigDecimalFromJsonArray(j, 1);
+            BID_SIZE = getBigDecimalFromJsonArray(j, 2);
+            ASK = getBigDecimalFromJsonArray(j, 3);
+            ASK_SIZE = getBigDecimalFromJsonArray(j, 4);
+            DAILY_CHANGE = getBigDecimalFromJsonArray(j, 5);
+            DAILY_CHANGE_RELATIVE = getBigDecimalFromJsonArray(j, 6);
+            LAST_PRICE = getBigDecimalFromJsonArray(j, 7);
+            VOLUME = getBigDecimalFromJsonArray(j, 8);
+            HIGH = getBigDecimalFromJsonArray(j, 9);
+            LOW = getBigDecimalFromJsonArray(j, 10);
             if (j.size() >= 12 && !j.isNull(12)) {
                 TIMESTAMP = new Timestamp(j.getJsonNumber(12).longValue());
             }
@@ -49,5 +48,9 @@ public class SpotTO {
         s.setVolume(VOLUME);
         s.setTimestamp(TIMESTAMP);
         return s;
+    }
+    
+    public static BigDecimal getBigDecimalFromJsonArray(JsonArray array, int idx) {
+        return array.isNull(idx) ? null : array.getJsonNumber(idx).bigDecimalValue();
     }
 }
