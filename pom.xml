@@ -12,6 +12,7 @@
 		<module>batches</module>
         <module>datacrawler</module>
         <module>assetmanager</module>
+		<module>dataloader</module>
     </modules>
 
 	<parent>
