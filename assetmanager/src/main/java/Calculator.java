@@ -1,7 +1,7 @@
-import com.example.pluto.entities.BasketTO;
-import com.example.pluto.entities.SpotEntity;
-import com.example.pluto.entities.TradeTO;
-import com.example.pluto.entities.WeightTO;
+import com.pluto.entities.BasketTO;
+import com.pluto.entities.SpotEntity;
+import com.pluto.entities.TradeTO;
+import com.pluto.entities.WeightTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

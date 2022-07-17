@@ -1,5 +1,5 @@
-import com.example.pluto.PlutoConstants;
-import com.example.pluto.entities.InstrumentTO;
+import com.pluto.PlutoConstants;
+import com.pluto.entities.InstrumentTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.pluto.PlutoConstants.*;
+import static com.pluto.PlutoConstants.*;
 
 public class Controller {
 

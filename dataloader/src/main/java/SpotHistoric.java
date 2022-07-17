@@ -1,7 +1,7 @@
-import com.example.pluto.PlutoConstants;
-import com.example.pluto.bitfinex.parsers.BitfinexParser;
-import com.example.pluto.entities.SpotEntity;
-import com.example.pluto.exchanges.ExchangeParser;
+import com.pluto.PlutoConstants;
+import com.pluto.bitfinex.parsers.BitfinexParser;
+import com.pluto.entities.SpotEntity;
+import com.pluto.exchanges.ExchangeParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import static com.example.pluto.PlutoConstants.HEADER_NAME_CONTENT_TYPE;
-import static com.example.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
+import static com.pluto.PlutoConstants.HEADER_NAME_CONTENT_TYPE;
+import static com.pluto.PlutoConstants.HEADER_VALUE_APPLICATION_JSON;
 
 public class SpotHistoric implements Runnable {
 
