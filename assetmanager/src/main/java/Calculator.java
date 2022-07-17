@@ -34,7 +34,9 @@ public abstract class Calculator {
         BigDecimal equivalent = BigDecimal.ZERO;
         for (String c : positions.keySet()) {
             BigDecimal p = positions.get(c);
-            if (spots.get(c) != null && p != null) {
+            if ("BTC".equals(c)) {
+                equivalent = equivalent.add(positions.get(c));
+            } else if (spots.get(c) != null && p != null) {
                 equivalent = equivalent.add(p.multiply(spots.get(c).getBid()));
             }
         }
@@ -44,9 +46,11 @@ public abstract class Calculator {
     protected static Map<String, BigDecimal> getUpperBounds(BigDecimal btc, Map<String, SpotEntity> spots, Map<String, BigDecimal> weights) {
         Map<String, BigDecimal> bounds = new HashMap<>();
         weights.forEach((ccy, w) -> {
-            logger.debug("Getting lower bound for " + ccy);
-            BigDecimal spot = spots.get(ccy).getBid();
-            bounds.put(ccy, w.multiply(btc).divide(spot, RoundingMode.HALF_UP));
+            //logger.debug("Getting lower bound for " + ccy);
+            if (spots.get(ccy) != null) {
+                BigDecimal spot = spots.get(ccy).getBid();
+                bounds.put(ccy, w.multiply(btc).divide(spot, RoundingMode.HALF_UP));
+            }
         });
         return bounds;
     }
@@ -54,9 +58,11 @@ public abstract class Calculator {
     protected static Map<String, BigDecimal> getLowerBounds(BigDecimal btc, Map<String, SpotEntity> spots, Map<String, BigDecimal> weights) {
         Map<String, BigDecimal> bounds = new HashMap<>();
         weights.forEach((ccy, w) -> {
-            logger.debug("Getting lower bound for " + ccy);
-            BigDecimal spot = spots.get(ccy).getOffer();
-            bounds.put(ccy, w.multiply(btc).divide(spot, RoundingMode.HALF_UP));
+            //logger.debug("Getting lower bound for " + ccy);
+            if (spots.get(ccy) != null) {
+                BigDecimal spot = spots.get(ccy).getOffer();
+                bounds.put(ccy, w.multiply(btc).divide(spot, RoundingMode.HALF_UP));
+            }
         });
         return bounds;
     }

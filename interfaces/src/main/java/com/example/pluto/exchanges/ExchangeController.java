@@ -12,6 +12,9 @@ public interface ExchangeController {
     @GetMapping(value = "spotsHist/{instruments}")
     List<SpotEntity> getSpotsHist(@PathVariable String instruments);
 
+    @GetMapping(value = "spots/{instruments}/{start}/{end}")
+    List<SpotEntity> getSpots(@PathVariable("instruments") String instruments, @PathVariable("start") Long start, @PathVariable("end") Long end);
+
     @GetMapping(value = "spots/{instruments}")
     List<SpotEntity> getSpots(@PathVariable String instruments);
 
@@ -26,9 +29,6 @@ public interface ExchangeController {
 
     @GetMapping(value = "book/{instrument}")
     BookTO getBook(@PathVariable String instrument, @RequestParam(required = false) String time);
-
-    @GetMapping(value = "trade/unactive/{pair}")
-    List<TradeTO> getUnactiveOrders(@PathVariable String pair);
 
     @PostMapping(value = "trade")
     List<TradeTO> trade(@RequestBody List<TradeTO> defTrades);

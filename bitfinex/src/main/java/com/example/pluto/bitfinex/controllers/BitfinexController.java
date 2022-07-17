@@ -36,6 +36,11 @@ public class BitfinexController implements ExchangeController {
     }
 
     @Override
+    public List<SpotEntity> getSpots(String instruments, Long start, Long end) {
+        return bitfinexPublicService.getSpots(instruments, start, end);
+    }
+
+    @Override
     public List<SpotEntity> getSpots(String instruments) {
         LOG.info("get all spots");
         List<SpotEntity> spots = new ArrayList<>();
@@ -75,12 +80,6 @@ public class BitfinexController implements ExchangeController {
     @Override
     public BookTO getBook(String instrument, String time) {
         return null;
-    }
-
-    @Override
-    public List<TradeTO> getUnactiveOrders(String pair) {
-        LOG.info("Get unactive orders for " + pair);
-        return bitfinexAuthService.getUnactiveOrders(pair);
     }
 
     @Override

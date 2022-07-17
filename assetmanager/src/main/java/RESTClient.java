@@ -89,10 +89,11 @@ public class RESTClient {
         return spotsAsMap(spots);
     }
 
-    public static List<Map<String, SpotEntity>> getSpotsHist(Set<String> instruments) {
+    public static List<Map<String, SpotEntity>> getSpotsHist(Set<String> instruments, long start, long end) {
+        String bounds = String.format("/%s/%s", start, end);
         HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.BITFINEX.value(),
-                                                                            PlutoConstants.Path.BITFINEX_SPOTS_HIST.value(),
-                                                                            getInstrumentsSubpath(instruments))))
+                                                                            PlutoConstants.Path.BITFINEX_SPOTS.value(),
+                                                                            getInstrumentsSubpath(instruments), bounds)))
                 .build();
         HttpResponse<String> response;
         List<SpotEntity> spots = new LinkedList<>();
@@ -119,7 +120,7 @@ public class RESTClient {
                 snapshots.add(saving);
                 saving = new HashMap<>();
             }
-            saving.put(s.getInstrument(), s);
+            saving.put(s.getInstrument().replace("BTC", ""), s);
         }
         snapshots.add(saving);
         return snapshots;
@@ -141,22 +142,6 @@ public class RESTClient {
         Map<String, BigDecimal> positions = new HashMap<>(positionTOList.size());
         positionTOList.forEach(p -> positions.put(p.getCurrency(), p.getQuantity()));
         return positions;
-    }
-
-    protected static List<TradeTO> getUnactiveOrders(final String pair) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(Socket.BITFINEX.value(), Path.BITFINEX_UNACTIVE.value(), pair))).build();
-        HttpResponse<String> response = null;
-        List<TradeTO> unactive = new ArrayList<>();
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            unactive = new ObjectMapper().readValue(response.body(), new TypeReference<>(){});
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        LOG.info("Got trades: " + unactive);
-        return unactive;
     }
 
     protected static List<TradeTO> callTrader(final List<TradeTO> trades) {

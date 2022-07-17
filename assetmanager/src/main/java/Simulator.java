@@ -7,6 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Simulator extends Calculator implements Runnable {
@@ -28,14 +31,19 @@ public class Simulator extends Calculator implements Runnable {
             BigDecimal threshold = BigDecimal.valueOf(0.01);    // Desviaciones del 1%
 
             Map<String, SpotEntity> spots = h;
+            logger.debug("Spots for iteration: " + spots.toString());
             BigDecimal btc = BigDecimal.ONE;
             Map<String, BigDecimal> qBid = getUpperBounds(btc, spots, weights);
             Map<String, BigDecimal> qAsk = getLowerBounds(btc, spots, weights);
-            List<TradeTO> trading = getSellingTrades(qBid, positions, threshold);
-            trading.addAll(getBuyingTrades(qAsk, positions, threshold));
-            updatePositions(trading, spots);
+            if (qBid.isEmpty() || qAsk.isEmpty()) {
+                logger.debug("Bounds could not be calculated");
+            } else {
+                List<TradeTO> trading = getSellingTrades(qBid, positions, threshold);
+                trading.addAll(getBuyingTrades(qAsk, positions, threshold));
+                updatePositions(trading, spots);
 
-            saveState(currencies, spots);
+                saveState(currencies, spots);
+            }
         }
 
         printOutput();
@@ -62,22 +70,28 @@ public class Simulator extends Calculator implements Runnable {
     private List<Map<String, SpotEntity>> getSpotsHist(Set<String> currencies) {
         Set<String> pairs = new HashSet<>(currencies.size());
         currencies.forEach(c -> pairs.add(c+"BTC"));
-        return RESTClient.getSpotsHist(currencies);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime start = LocalDateTime.parse("2021-05-27 13:30:00", f);
+        LocalDateTime end = LocalDateTime.parse("2022-05-27 13:00:10", f);
+        return RESTClient.getSpotsHist(currencies, start.toEpochSecond(ZoneOffset.UTC), end.toEpochSecond(ZoneOffset.UTC));
     }
 
     public void updatePositions(List<TradeTO> trading, Map<String, SpotEntity> spots) {
         for (TradeTO t : trading) {
             int side = BigDecimal.ZERO.compareTo(t.getAmount()); // Buy = -1;
-            BigDecimal applyingSpot = side == -1 ? spots.get(t.getPair()).getOffer() : spots.get(t.getPair()).getBid();
+            String altCoin = t.getPair().replace("BTC", "");
+            BigDecimal applyingSpot = side == -1 ? spots.get(altCoin).getOffer() : spots.get(altCoin).getBid();
             BigDecimal btcAmount = t.getAmount().multiply(applyingSpot);
             if (side == -1) {
                 t.setAmount(applyFees(t.getAmount()));
+                btcAmount = btcAmount.negate();
             } else {
                 btcAmount = applyFees(btcAmount);
+                t.setAmount(t.getAmount().negate());
             }
-            String altCoin = t.getPair().replace("BTC", "");
             positions.put(altCoin, positions.get(altCoin).add(t.getAmount()));
             positions.put("BTC", positions.get("BTC").add(btcAmount));
+            logger.debug("Positions status: " + positions.toString());
         }
     }
 
@@ -86,7 +100,7 @@ public class Simulator extends Calculator implements Runnable {
     }
 
     public void saveState(Set<String> currencies, Map<String, SpotEntity> spots) {
-        Timestamp timestamp = spots.get(0).getTimestamp();
+        Timestamp timestamp = spots.get(spots.keySet().iterator().next()).getTimestamp();
         outputBuilder.append(timestamp);
         BigDecimal eq = getBTCEquivalent(positions, spots);
         outputBuilder.append(eq);

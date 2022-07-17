@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -88,6 +90,19 @@ public class BitfinexPublicService implements ExchangeService {
             e.printStackTrace();
         }
         return spots;
+    }
+
+    public List<SpotEntity> getSpots(String instruments, Long start, Long end) {
+        LocalDateTime startDateTime = LocalDateTime.ofEpochSecond(start, 0, ZoneOffset.UTC);
+        Timestamp startTimestamp = Timestamp.valueOf(startDateTime);
+        LocalDateTime endDateTime = LocalDateTime.ofEpochSecond(end, 0, ZoneOffset.UTC);
+        Timestamp endTime = Timestamp.valueOf(endDateTime);
+        Iterator<String> it = Arrays.stream(instruments.split(",")).iterator();
+        List<String> insts = new LinkedList<>();
+        while (it.hasNext()) {
+            insts.add(it.next()+"BTC");
+        }
+        return spotRepository.findAllByInstrumentStartEnd(insts, startTimestamp, endTime);
     }
 
     private String getFormatedSymbols(List<String> instruments) {

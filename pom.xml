@@ -9,10 +9,9 @@
 		<module>interfaces</module>
 		<module>bitfinex</module>
 		<module>ordenanza</module>
-		<module>batches</module>
         <module>datacrawler</module>
         <module>assetmanager</module>
-		<module>dataloader</module>
+		<!--<module>dataloader</module>-->
     </modules>
 
 	<parent>

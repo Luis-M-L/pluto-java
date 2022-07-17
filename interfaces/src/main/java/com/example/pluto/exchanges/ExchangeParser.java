@@ -11,6 +11,8 @@ public interface ExchangeParser {
 
     SpotEntity parseSpot(String json);
 
+    List<SpotEntity> parseSpots(String json);
+
     TradeTO parseTrade(String json);
 
     ExchangeError getError(String body);
