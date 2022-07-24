@@ -1,0 +1,38 @@
+version: '3.1'
+
+services:
+
+  mysql:
+    image: mariadb:10.5.10
+    environment:
+      MYSQL_DATABASE: pluto
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: mozo
+      MYSQL_PASSWORD: ozom
+    volumes:
+    - ${MARIADB_HOME}\mariadb-pluto:/var/lib/mysql
+    ports:
+    - "3306:3306"
+
+  bitfinex:
+    build:
+      context: ./bitfinex/
+      dockerfile: Dockerfile
+    ports:
+      - "48558:8080"
+    volumes:
+    - ${API_KEYSTORE}:/ssh/
+
+  ordenanza:
+    build:
+      context: ./ordenanza/
+      dockerfile: Dockerfile
+    ports:
+    - "48557:8080"
+
+  batches:
+    build:
+      context: ./batches/
+      dockerfile: Dockerfile
+    ports:
+      - "48559:8080"

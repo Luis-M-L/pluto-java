@@ -19,9 +19,34 @@
         </dependency>
         <dependency>
             <groupId>com.example</groupId>
-            <artifactId>interfaces</artifactId>
+            <artifactId>entities</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.11</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/javax.json/javax.json-api -->
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.1.4</version>
         </dependency>
     </dependencies>
 
@@ -30,15 +55,15 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
-    <!--build>
-        <plugins>
-            <plugin>
-                <groupId>com.example</groupId>
-                <artifactId>pluto</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-            </plugin>
-        </plugins>
-        <finalName>bitfinex</finalName>
-    </build-->
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>com.example</groupId>-->
+<!--                <artifactId>pluto</artifactId>-->
+<!--                <version>0.0.1-SNAPSHOT</version>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--        <finalName>bitfinex</finalName>-->
+<!--    </build>-->
 
 </project>
