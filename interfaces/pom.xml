@@ -2,20 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <!--parent>
-        <artifactId>pluto</artifactId>
-        <groupId>com.example</groupId>
-        <version>0.0.1-SNAPSHOT</version>
-    </parent-->
+    <!-- adding here the parent breaks the compilation -->
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.example</groupId>
     <artifactId>interfaces</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <dependencies>
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>entities</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
