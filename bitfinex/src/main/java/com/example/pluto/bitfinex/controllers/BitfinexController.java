@@ -3,7 +3,7 @@ package com.example.pluto.bitfinex.controllers;
 import com.example.pluto.bitfinex.authservices.BitfinexAuthService;
 import com.example.pluto.bitfinex.publicservices.BitfinexPublicService;
 import com.example.pluto.entities.BookTO;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
 import com.example.pluto.exchanges.ExchangeController;
 import org.slf4j.Logger;
@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/bitfinex")
@@ -29,16 +31,27 @@ public class BitfinexController implements ExchangeController {
     public BitfinexAuthService bitfinexAuthService;
 
     @Override
-    public List<SpotTO> getSpots(){
-        LOG.info("get all spots");
-        List<SpotTO> spots = new ArrayList<>();
-        return bitfinexPublicService.getSpots();
+    public List<SpotEntity> getSpotsHist(String instruments) {
+        return bitfinexPublicService.getSpotsHist(Arrays.stream(instruments.split(",")).collect(Collectors.toList()));
     }
 
     @Override
-    public SpotTO getSpot(String instrument, String time) {
+    public List<SpotEntity> getSpots(String instruments, Long start, Long end) {
+        return bitfinexPublicService.getSpots(instruments, start, end);
+    }
+
+    @Override
+    public List<SpotEntity> getSpots(String instruments) {
+        LOG.info("get all spots");
+        List<SpotEntity> spots = new ArrayList<>();
+        return instruments == null ? bitfinexPublicService.getSpots() :
+                bitfinexPublicService.getSpots(Arrays.stream(instruments.split(",")).collect(Collectors.toList()));
+    }
+
+    @Override
+    public SpotEntity getSpot(String instrument, String time) {
         LOG.info("get Spot " + instrument);
-        SpotTO spot = null;
+        SpotEntity spot = null;
         if(null == time) {
             spot = bitfinexPublicService.getSpot(instrument);
         } else {
@@ -48,7 +61,7 @@ public class BitfinexController implements ExchangeController {
     }
 
     @Override
-    public boolean saveSpot(String instrument, SpotTO spot) {
+    public boolean saveSpot(String instrument, SpotEntity spot) {
         LOG.info("save Spot " + instrument);
         boolean success = false;
         if(null == spot) {
@@ -72,8 +85,15 @@ public class BitfinexController implements ExchangeController {
     @Override
     public List<TradeTO> trade(List<TradeTO> defTrades) {
         LOG.info("Received trades: " + defTrades);
-        bitfinexAuthService.trade(defTrades);
-        return defTrades;
+        return bitfinexAuthService.trade(defTrades);
+    }
+
+    @Override
+    public List<TradeTO> updateChangedTrades(List<TradeTO> placed) {
+        if (placed == null) {
+            return new ArrayList<>(0);
+        }
+        return bitfinexAuthService.updateChanged(placed);
     }
 
     @GetMapping(value = "user")

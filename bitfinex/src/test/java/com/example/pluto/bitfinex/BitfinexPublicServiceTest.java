@@ -2,7 +2,7 @@ package com.example.pluto.bitfinex;
 
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
 import com.example.pluto.bitfinex.publicservices.BitfinexPublicService;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.net.ssl.SSLSession;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
@@ -32,7 +33,7 @@ public class BitfinexPublicServiceTest {
     private String ticker = "USDBTC";
     private String jsonBitfinex = "[[\"tBTCUSD\",37719,15.510102350000002,37721,13.328416660000002,-1551.62421105,-0.0395,37719,4069.14892134,39519,37210]]";
     private Timestamp timestamp = Timestamp.valueOf("2021-06-26 12:04:30");
-    private SpotTO expectedSpotTO = new SpotTO("USDBTC", timestamp, 37719.0, 37721.0, 4069.14892134);
+    private SpotEntity expectedSpotEntity = new SpotEntity("USDBTC", timestamp, BigDecimal.valueOf(37719.0), BigDecimal.valueOf(37721.0), BigDecimal.valueOf(4069.14892134));
 
     @Mock
     BitfinexAPIClient apiClient;
@@ -90,12 +91,12 @@ public class BitfinexPublicServiceTest {
                        return null;
                    }
                });
-       Mockito.when(service.parser.parseSpot(jsonBitfinex)).thenReturn(expectedSpotTO);
+       Mockito.when(service.parser.parseSpot(jsonBitfinex)).thenReturn(expectedSpotEntity);
     }
 
     @Test
     public void testGetSpot(){
-        SpotTO actualSpotTO = service.getSpot("USDBTC");
-        Assert.assertEquals(expectedSpotTO, actualSpotTO);
+        SpotEntity actualSpotEntity = service.getSpot("USDBTC");
+        Assert.assertEquals(expectedSpotEntity, actualSpotEntity);
     }
 }

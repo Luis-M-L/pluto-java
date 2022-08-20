@@ -1,6 +1,12 @@
 package com.example.pluto.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "PLUTO_POSITIONS")
@@ -10,22 +16,36 @@ public class PositionTO {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "BASKET_ID")
     private BasketTO basket;
 
     private String currency;
 
-    private Double quantity;
+    @Column(precision = 15, scale = 8)
+    private BigDecimal quantity;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
+    private Timestamp timestamp;
 
     public PositionTO() {
+        timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
-    public PositionTO(Long id, BasketTO basket, String currency, Double quantity) {
+    public PositionTO(Long id, BasketTO basket, String currency, BigDecimal quantity) {
         this.id = id;
         this.basket = basket;
         this.currency = currency;
         this.quantity = quantity;
+        timestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public BasketTO getBasket() {
@@ -44,12 +64,20 @@ public class PositionTO {
         this.currency = currency;
     }
 
-    public Double getQuantity() {
+    public BigDecimal getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Double quantity) {
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

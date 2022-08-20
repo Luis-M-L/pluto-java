@@ -19,7 +19,7 @@ services:
       context: ./bitfinex/
       dockerfile: Dockerfile
     ports:
-      - "48558:8080"
+      - "48558:48558"
     volumes:
     - ${API_KEYSTORE}:/ssh/
 
@@ -28,11 +28,11 @@ services:
       context: ./ordenanza/
       dockerfile: Dockerfile
     ports:
-    - "48557:8080"
+    - "48557:48557"
 
-  batches:
+  assetmanager:
     build:
-      context: ./batches/
+      context: ./assetmanager/
       dockerfile: Dockerfile
     ports:
       - "48559:8080"

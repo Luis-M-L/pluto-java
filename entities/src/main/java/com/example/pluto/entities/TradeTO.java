@@ -1,8 +1,10 @@
 package com.example.pluto.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
@@ -16,10 +18,11 @@ import java.util.Objects;
 public class TradeTO {
 
     public static final String ACTIVE_STATUS = "ACTIVE";
-    public static final String CLOSED_STATUS = "CLOSED";
+    public static final String CLOSED_STATUS = "EXECUTED";
     public static final String CANCELLED_STATUS = "CANCELLED";
 
     @Id
+    @GeneratedValue
     public Long id;
 
     private Long exchangeId;
@@ -32,20 +35,26 @@ public class TradeTO {
 
     private String pair;
     private BigDecimal price;
-    private Double amount;
+    private BigDecimal amount;
     private String status;
 
     public TradeTO() {
     }
 
-    public TradeTO(String pair, BigDecimal price, Double amount) {
+    public TradeTO(String pair, BigDecimal amount) {
+        this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+        this.pair = pair;
+        this.amount = amount;
+    }
+
+    public TradeTO(String pair, BigDecimal price, BigDecimal amount) {
         this.issuedTimestamp = Timestamp.from(Instant.now().truncatedTo(ChronoUnit.SECONDS));
         this.pair = pair;
         this.price = price;
         this.amount = amount;
     }
 
-    public TradeTO(Timestamp issuedTimestamp, Timestamp effectiveTimestamp, String pair, Double amount) {
+    public TradeTO(Timestamp issuedTimestamp, Timestamp effectiveTimestamp, String pair, BigDecimal amount) {
         this.issuedTimestamp = issuedTimestamp;
         this.effectiveTimestamp = effectiveTimestamp;
         this.pair = pair;
@@ -100,11 +109,11 @@ public class TradeTO {
         this.price = price;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -114,6 +123,22 @@ public class TradeTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @JsonIgnore
+    public String getBase() {
+        return pair.substring(0, 3);
+    }
+
+    @JsonIgnore
+    public String getQuoted() {
+        return pair.substring(3, 6);
+    }
+
+    public boolean looksAlike(TradeTO comp, double threshold) {
+        return this.pair.equals(comp.getPair())
+                && Math.abs(this.price.doubleValue() - comp.getPrice().doubleValue()) < threshold
+                && Math.abs(this.amount.doubleValue() - comp.getAmount().doubleValue()) < threshold;
     }
 
     @Override
