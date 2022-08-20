@@ -1,5 +1,5 @@
-import com.pluto.entities.SpotEntity;
-import com.pluto.entities.TradeTO;
+import com.example.pluto.entities.SpotEntity;
+import com.example.pluto.entities.TradeTO;
 
 import java.io.IOException;
 import java.math.BigDecimal;

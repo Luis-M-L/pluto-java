@@ -1,8 +1,8 @@
-import com.pluto.PlutoConstants;
-import com.pluto.entities.BasketTO;
-import com.pluto.entities.PositionTO;
-import com.pluto.entities.SpotEntity;
-import com.pluto.entities.TradeTO;
+import com.example.pluto.PlutoConstants;
+import com.example.pluto.entities.BasketTO;
+import com.example.pluto.entities.PositionTO;
+import com.example.pluto.entities.SpotEntity;
+import com.example.pluto.entities.TradeTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.pluto.PlutoConstants.*;
+import static com.example.pluto.PlutoConstants.*;
 
 public class RESTClient {
 
