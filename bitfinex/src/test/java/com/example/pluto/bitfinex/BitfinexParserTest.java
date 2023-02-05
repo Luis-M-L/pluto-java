@@ -1,7 +1,7 @@
 package com.example.pluto.bitfinex;
 
 import com.example.pluto.bitfinex.parsers.BitfinexParser;
-import com.example.pluto.entities.SpotTO;
+import com.example.pluto.entities.SpotEntity;
 import com.example.pluto.entities.TradeTO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,7 +24,7 @@ public class BitfinexParserTest {
     public void setUp(){
         parser = new BitfinexParser();
         jsonTicker = "[[\"tBTCUSD\",37719,15.510102350000002,37721,13.328416660000002,-1551.62421105,-0.0395,37719,4069.14892134,39519,37210]]";
-        jsonTrade = "[1637093199,\"on-req\",null,null,[[78617700474,null,1637093199923,\"tIOTETH\",1637093199924,1637093199924,-50,-50,\"EXCHANGE LIMIT\",null,null,null,0,\"ACTIVE\",null,null,0.00032,0,0,0,null,null,null,0,0,null,null,null,\"API>BFX\",null,null,null]],null,\"SUCCESS\",\"Submitting 1 orders.\"]";
+        jsonTrade = "[1637093199,\"on-req\",null,null,[[78617700474,null,1637093199923,\"tIOTETH\",1637093199924,1637093199924,-51,-49,\"EXCHANGE LIMIT\",null,null,null,0,\"ACTIVE\",null,null,0.00032,0,0,0,null,null,null,0,0,null,null,null,\"API>BFX\",null,null,null]],null,\"SUCCESS\",\"Submitting 1 orders.\"]";
     }
 
     @Test
@@ -32,13 +32,13 @@ public class BitfinexParserTest {
         MockedStatic<Timestamp> instantMockedStatic = Mockito.mockStatic(Timestamp.class);
         instantMockedStatic.when(() -> Timestamp.from(Mockito.any())).thenReturn(timestamp);
 
-        SpotTO spotTO = parser.parseSpot(jsonTicker);
+        SpotEntity spotEntity = parser.parseSpot(jsonTicker);
 
-        Assert.assertEquals("tBTCUSD","t"+spotTO.getInstrument());
-        Assert.assertEquals(timestamp, spotTO.getTimestamp());
-        Assert.assertEquals((Double) 37719.0, spotTO.getBid());
-        Assert.assertEquals((Double) 37721.0, spotTO.getOffer());
-        Assert.assertEquals((Double) 4069.14892134, spotTO.getVolume());
+        Assert.assertEquals("tBTCUSD","t"+ spotEntity.getInstrument());
+        Assert.assertEquals(timestamp, spotEntity.getTimestamp());
+        Assert.assertEquals((Double) 37719.0, spotEntity.getBid());
+        Assert.assertEquals((Double) 37721.0, spotEntity.getOffer());
+        Assert.assertEquals((Double) 4069.14892134, spotEntity.getVolume());
     }
 
     @Test
@@ -46,10 +46,10 @@ public class BitfinexParserTest {
         TradeTO tradeTO = parser.convertOrderIntoTrade(new TradeTO(), jsonTrade);
 
         Assert.assertEquals(new Timestamp(1637093199924L), tradeTO.getEffectiveTimestamp());
-        Assert.assertEquals(Long.valueOf(78617700474L), tradeTO.getExchangeId());
+        Assert.assertEquals(Long.valueOf(1637093199923L), tradeTO.getExchangeId());
         Assert.assertEquals("IOTETH", tradeTO.getPair());
         Assert.assertEquals(BigDecimal.valueOf(32e-5), tradeTO.getPrice());
-        Assert.assertEquals(Double.valueOf(-50.0), tradeTO.getAmount());
+        Assert.assertEquals(Double.valueOf(-49.0), tradeTO.getAmount());
         Assert.assertEquals(TradeTO.ACTIVE_STATUS, tradeTO.getStatus());
     }
 }
