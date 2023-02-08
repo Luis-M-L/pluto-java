@@ -23,7 +23,7 @@
 
 	<groupId>com.example</groupId>
 	<artifactId>pluto</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>pluto</name>
 	<description>Cryptocurrencies management</description>
 
