@@ -1,6 +1,5 @@
 package com.example.pluto.apiclients;
 
-import com.example.pluto.exchanges.ExchangeAPIClient;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;

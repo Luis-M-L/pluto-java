@@ -1,7 +1,7 @@
 package com.example.pluto.controllers;
 
 import com.example.pluto.entities.InstrumentTO;
-import com.example.pluto.ordenanza.services.InstrumentsService;
+import com.example.pluto.services.InstrumentsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

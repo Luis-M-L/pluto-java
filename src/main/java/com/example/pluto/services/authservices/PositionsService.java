@@ -1,10 +1,10 @@
 package com.example.pluto.services.authservices;
 
-import com.example.pluto.bitfinex.repositories.BasketRepository;
-import com.example.pluto.bitfinex.repositories.PositionRepository;
 import com.example.pluto.entities.BasketTO;
 import com.example.pluto.entities.PositionTO;
 import com.example.pluto.entities.TradeTO;
+import com.example.pluto.repositories.BasketRepository;
+import com.example.pluto.repositories.PositionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
