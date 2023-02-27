@@ -43,7 +43,7 @@
     </appender>
 
     <!-- LOG everything at INFO level -->
-    <root level="trace">
+    <root level="info">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="ErrorFile" />
         <appender-ref ref="Console" />

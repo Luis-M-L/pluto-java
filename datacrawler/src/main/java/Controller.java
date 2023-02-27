@@ -18,6 +18,8 @@ import static com.example.pluto.PlutoConstants.*;
 
 public class Controller {
 
+    private static String ordenanzaSocket = "192.168.1.145:48557";
+    private static String bitfinexSocket = "192.168.1.145:48558";
     private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 
     public static void main(String[] args) throws InterruptedException {
@@ -33,7 +35,7 @@ public class Controller {
     }
 
     private static List<InstrumentTO> getParesVigilados(){
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.ORDENANZA.value(), PlutoConstants.Path.INSTRUMENTS.value()))).build();
+        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(ordenanzaSocket, PlutoConstants.Path.INSTRUMENTS.value()))).build();
         HttpResponse<String> response;
         List<InstrumentTO> vigilados = new ArrayList<>();
         try {
@@ -49,7 +51,7 @@ public class Controller {
     }
 
     private static void requestSave(String instrument){
-        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(PlutoConstants.Socket.BITFINEX.value(), PlutoConstants.Path.BITFINEX_SPOT.value(), instrument)))
+        HttpRequest request = HttpRequest.newBuilder(URI.create(buildUrl(bitfinexSocket, PlutoConstants.Path.BITFINEX_SPOT.value(), instrument)))
                 .method(RequestMethod.POST.name(), HttpRequest.BodyPublishers.noBody())
                 .setHeader(HEADER_NAME_CONTENT_TYPE, HEADER_VALUE_APPLICATION_JSON)
                 .build();
