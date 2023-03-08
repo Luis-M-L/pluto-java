@@ -1,0 +1,14 @@
+info[<ccy>]: {
+    position_ccy: current position in ccy units,
+    position_btc: current position in BTC,
+    spot: {
+        bid: float,
+        offer:
+    }
+    weight: desired weight in x per 1
+}
+
+bounds[ccy]: {
+    upper: weight * btc_eq_tot / spot["bid"],
+    lower: weight * btc_eq_tot / spot["offer"]
+}
