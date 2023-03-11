@@ -1,7 +1,9 @@
 import requests
 import json
 import datetime
+import logging
 
+logging.basicConfig(filename='logs/assetmanager.log', filemode='w', format='%(asctime)s - %(message)s', level=logging.DEBUG)
 bitfinex = 'http://127.0.0.1:48558/'
 ordenanza = 'http://127.0.0.1:48557/'
 threshold = 0.01 # Deviation of 1% at least
@@ -10,6 +12,7 @@ def get_position(info, ccy):
  if ccy in info and "position_ccy" in info[ccy]:
   p = info[ccy]["position_ccy"]
  else:
+  logging.warning("Position default set to ZERO because currency does not have any value: " + ccy)
   p = 0
  return p
 
@@ -28,7 +31,7 @@ def get_positions(info):
  url = bitfinex + "position/last/"
  r = requests.get(url)
  data = r.json()
- print(r.text)
+ logging.info("Got positions: " + r.text)
  for d in data:
   ### We are considering currencies with a weight defined only
   if (d["currency"] in info):
@@ -36,6 +39,7 @@ def get_positions(info):
    if (float(d["quantity"]) > 0.0005):
     q = d["quantity"]
    else:
+    logging.warning("Position < 0.0005, considering it as zero [" + d["currency"] + "]")
     q = 0
    info[d["currency"]]["position_ccy"] = q
 
@@ -45,6 +49,7 @@ def get_spots(info):
   url = url + "," + c
  r = requests.get(url)
  data = r.json()
+ logging.info("Got spots: " + r.text)
  for d in data:
   ccy = d["instrument"].replace("BTC", "")
   info[ccy]["spot"] = {}
@@ -60,6 +65,8 @@ def get_btc_equivalent(info):
    this_eq = get_position(info, ccy) * info[ccy]["spot"]["bid"]
   info[ccy]["position_btc"] = this_eq
   eq = eq + this_eq
+ logging.info("Current positions are " + str(eq) + "BTC worth")
+ logging.debug("info: " + str(info))
  return eq
 
 def get_bounds(btc, info):
@@ -71,6 +78,7 @@ def get_bounds(btc, info):
    s = info[ccy]["spot"]
    bounds[ccy]["upper"] = w * btc / s["bid"]
    bounds[ccy]["lower"] = w * btc / s["offer"]
+ logging.debug("Bounds for currencies: " + str(bounds))
  return bounds
 
 def get_selling_trades(trades, btc, bounds, info, threshold):
@@ -98,26 +106,22 @@ def get_buying_trades(trades, btc, bounds, info, threshold):
    if diff > local_threshold :
     trade = {"pair": i + "BTC", "amount": diff, "issuedTimestamp": timestamp}
     trades.append(trade)
+    buying_trades.append(trade)
 
 def trade(trades):
- url = bitfinex + "bitfinex/trade/"
- requests.post(url, json=trades)
+ logging.info("Sending trades: " + str(trades))
+ if len(trades) > 0:
+  url = bitfinex + "bitfinex/trade/"
+  requests.post(url, json=trades)
 
 info = get_weights()
 get_positions(info)
 get_spots(info)
-print(info)
+logging.debug(info)
 btc_eq = get_btc_equivalent(info)
-print("btc total")
-print(btc_eq)
 bounds = get_bounds(btc_eq, info)
-print("bounds: ")
-print(bounds)
 trades = []
-print("info: ")
-print(info)
+logging.info(info)
 get_selling_trades(trades, btc_eq, bounds, info, threshold)
 get_buying_trades(trades, btc_eq, bounds, info, threshold)
-print("trades: ")
-print(trades)
 trade(trades)
