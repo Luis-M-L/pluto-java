@@ -8,6 +8,8 @@ bitfinex = 'http://127.0.0.1:48558/'
 ordenanza = 'http://127.0.0.1:48557/'
 threshold = 0.01 # Deviation of 1% at least
 
+# Doc at the end of the file
+
 def get_position(info, ccy):
  if ccy in info and "position_ccy" in info[ccy]:
   p = info[ccy]["position_ccy"]
@@ -106,7 +108,6 @@ def get_buying_trades(trades, btc, bounds, info, threshold):
    if diff > local_threshold :
     trade = {"pair": i + "BTC", "amount": diff, "issuedTimestamp": timestamp}
     trades.append(trade)
-    buying_trades.append(trade)
 
 def trade(trades):
  logging.info("Sending trades: " + str(trades))
@@ -125,3 +126,20 @@ logging.info(info)
 get_selling_trades(trades, btc_eq, bounds, info, threshold)
 get_buying_trades(trades, btc_eq, bounds, info, threshold)
 trade(trades)
+
+# DOC #
+
+#info[<ccy>]: {
+#   position_ccy: current position in ccy units,
+#   position_btc: current position in BTC,
+#   spot: {
+#       bid: float,
+#       offer:
+#   }
+#   weight: desired weight in x per 1
+#}
+#
+#bounds[ccy]: {
+#   upper: weight * btc_eq_tot / spot["bid"],
+#   lower: weight * btc_eq_tot / spot["offer"]
+#}
